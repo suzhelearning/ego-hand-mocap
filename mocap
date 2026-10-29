@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+export PYTHONPATH="$project_root/src${PYTHONPATH:+:$PYTHONPATH}"
+if [[ ${1:-} == router ]]; then
+    shift
+    exec "$project_root/tools/start_router.sh" "$@"
+fi
+python_bin="${MOCAP_PYTHON:-$project_root/.pixi/envs/default/bin/python}"
+if [[ ! -x "$python_bin" ]]; then
+    echo "未找到项目 Python 环境，请先在项目目录执行 pixi install。" >&2
+    exit 1
+fi
+exec "$python_bin" -m mocap_runtime "$@"

@@ -1,0 +1,28 @@
+[workspace]
+name = "okvis2-x-head"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = "3.12.*"
+cmake = ">=3.17,<4"
+ninja = "*"
+pkg-config = "*"
+libblas = "*"
+liblapack = "*"
+eigen = "3.4.*"
+suitesparse = "*"
+glog = "0.6.*"
+gflags = "*"
+libgl-devel = "*"
+xorg-xorgproto = "*"
+liblzma-devel = "*"
+libboost-devel = "*"
+opencv = "*"
+pcl = "1.14.*"
+geographiclib-cpp = "*"
+numpy = "*"
+scipy = "*"
+h5py = "*"
+pyyaml = "*"
+plotly = "*"

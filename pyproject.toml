@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ego-hand-ground-truth"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.26,<3", "scipy>=1.11,<2", "eclipse-zenoh>=1.9,<1.10", "h5py>=3.10,<4"]
+
+[project.optional-dependencies]
+test = ["pytest>=8,<10"]
+motion = ["h5py>=3.10,<4"]
+
+[project.scripts]
+mocap = "mocap_runtime.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools]
+license-files = ["licenses/*.pdf", "licenses/*.txt"]
+
+[tool.setuptools.package-data]
+motion_web = ["static/*", "static/vendor/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

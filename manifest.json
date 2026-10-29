@@ -1,0 +1,150 @@
+{
+  "project": "Ego手部识别动捕Ground Truth",
+  "date": "2026-10-28",
+  "timezone": "Asia/Shanghai",
+  "source_document": "https://vcnqhq28cfdm.feishu.cn/docx/SyU7dqjtloMpSKxOMXZcFXKRnac",
+  "source_revision": 17,
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3765,
+      "sha256": "11849294d16607399da37271f047be45a6b497c3d933eadf45ef618f14ef0b1b"
+    },
+    {
+      "path": "calibration/head_000205_calibration_full.json",
+      "bytes": 41859,
+      "sha256": "77932e26d5f0899228d023c94e3b44bbbb3f5b410fe470d8602f8d356ee40662"
+    },
+    {
+      "path": "docs/feishu_snapshot.json",
+      "bytes": 8635,
+      "sha256": "1ba4baf06a87727e47fa3dd6d47f1cb6eb0781821913c7fd847644d402e0837a"
+    },
+    {
+      "path": "docs/feishu_snapshot.xml",
+      "bytes": 8236,
+      "sha256": "a63101bc39c0710725c0aa8cbd40a62b140802483dd118446f76d4539340e18d"
+    },
+    {
+      "path": "docs/关键上下文与接手说明.md",
+      "bytes": 15976,
+      "sha256": "df997a54fb1353eb048f0ddafdb6bb349d239060776c1bd429f090efe2e2b8ae"
+    },
+    {
+      "path": "docs/时间同步方案.md",
+      "bytes": 2912,
+      "sha256": "5d9d32a4a2edae3c2d58c3c857221448d8d308db7f6f22805b14d2a728e755ef"
+    },
+    {
+      "path": "docs/项目信息同步文档.md",
+      "bytes": 3463,
+      "sha256": "6b52b5d586ca3b6a561adfdd3bf9edeaf42d13cf64e3ea00877bea2b73e9abe3"
+    },
+    {
+      "path": "ego_data/head_000002/IR_left.mp4",
+      "bytes": 191982,
+      "sha256": "8a91b24cc7679f7fc8d75ad2c9c97c32641b6b739e8c8630dab8590bd13f0ca9"
+    },
+    {
+      "path": "ego_data/head_000002/IR_right.mp4",
+      "bytes": 207933,
+      "sha256": "7996ba8dc6efca7fbe64a3523d21ef9c18584835bdb681df998ba9eb90d5f637"
+    },
+    {
+      "path": "ego_data/head_000002/RGB_left.mp4",
+      "bytes": 4932684,
+      "sha256": "d063a8935d32529e37b2619dc5c462fc094c6b558f347153f1e4147857a8140d"
+    },
+    {
+      "path": "ego_data/head_000002/RGB_right.mp4",
+      "bytes": 7440224,
+      "sha256": "25733f771e4044ed6bdd8787a1dec324164b0fb6ae46ad0d7a61114aba5e54d9"
+    },
+    {
+      "path": "ego_data/head_000002/head_000002.h5",
+      "bytes": 414991,
+      "sha256": "20c8bd6805e653571a6662ab429a7704b8963b95b69837ca133e4547022e2264"
+    },
+    {
+      "path": "ego_data/head_000002/head_000002_summary.json",
+      "bytes": 746,
+      "sha256": "3488d5b86aafe324c741b0bdec3b1c4aa1d82950d71ba658e483e04740a4799a"
+    },
+    {
+      "path": "ego_data/head_000003/IR_left.mp4",
+      "bytes": 168568,
+      "sha256": "23dfed1ca87befa9747198eee3c19ba55f30044176c117c46e34dd1f05a4cb7f"
+    },
+    {
+      "path": "ego_data/head_000003/IR_right.mp4",
+      "bytes": 305694,
+      "sha256": "bfdb657e0612448d6faa06955928398666901ea5b49de7080a20a2351778ba9d"
+    },
+    {
+      "path": "ego_data/head_000003/RGB_left.mp4",
+      "bytes": 5836041,
+      "sha256": "7daf35c5683a54a64b59a9038d3a11d828ef5e01b577958b155ba99e6fdd3bb5"
+    },
+    {
+      "path": "ego_data/head_000003/RGB_right.mp4",
+      "bytes": 7705101,
+      "sha256": "a5b57bd9e8683921220e3839e4b4792d8b1368c7c18bfe28f58d5f4b500ff787"
+    },
+    {
+      "path": "ego_data/head_000003/capture_summary.json",
+      "bytes": 605,
+      "sha256": "4510d34ab71a4cd8046abe81e2d3df75a6842742fa116baade260ad16aa7f193"
+    },
+    {
+      "path": "ego_data/head_000003/control_log.jsonl",
+      "bytes": 1779,
+      "sha256": "a6e979d576a096a9ef3871dc135a7d7f64ecb66f8e972212f86885d030986084"
+    },
+    {
+      "path": "ego_data/head_000003/device_sha256.txt",
+      "bytes": 431,
+      "sha256": "099c3ca04d8db3b422fb92123143bf6e11f4328d0bef665c85580af05786e4a7"
+    },
+    {
+      "path": "ego_data/head_000003/head_000003.h5",
+      "bytes": 419589,
+      "sha256": "b62d396848b74e67211fac935e1adea59ded7f150c409d529637028caf3e7f3e"
+    },
+    {
+      "path": "ego_data/head_000205/IR_left.mp4",
+      "bytes": 827914,
+      "sha256": "ca072602021f2a4abcfe133827bfd3e41475ff9f2d727fe4c9b9935ab8e7b547"
+    },
+    {
+      "path": "ego_data/head_000205/IR_right.mp4",
+      "bytes": 1086000,
+      "sha256": "376c546b4d0c77df515b6f1c58ab41cc9864eabbe3631a2f5eb2842709e15b9e"
+    },
+    {
+      "path": "ego_data/head_000205/RGB_left.mp4",
+      "bytes": 24550141,
+      "sha256": "a115cc978d8f8a675dec50ab0ec03dd6ec77c883e6d6a5746532398c10ebac9e"
+    },
+    {
+      "path": "ego_data/head_000205/RGB_right.mp4",
+      "bytes": 24455481,
+      "sha256": "03413d09da71988f0b74be16e5f3e86dc68d4947917efcfa7e2edab394bd257e"
+    },
+    {
+      "path": "ego_data/head_000205/dataset.json",
+      "bytes": 10007,
+      "sha256": "191757ec7bbcb9a9f1fbaa4f60c52e6e6a506edbc334f8400b3091f8693ff308"
+    },
+    {
+      "path": "ego_data/head_000205/events.json",
+      "bytes": 426,
+      "sha256": "3871112785b83fb40ccd82e9e12e3c3c45a29166ec54eedc289e153be477f2b4"
+    },
+    {
+      "path": "ego_data/head_000205/head_000205.h5",
+      "bytes": 353931,
+      "sha256": "8740919875802741a56a07e9f40714de4762b9f64f78b87899e9b6cd75d52cf2"
+    }
+  ],
+  "code_migration": "docs/code_migration.md"
+}

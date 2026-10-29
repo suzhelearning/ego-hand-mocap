@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "sources": {
+    "/home/wh/下载/head_0/head_000009": {
+      "export": "datasets/head_000009_pinhole_noise_v1",
+      "profile": "009_imu_weight_v1",
+      "validation_results": [
+        "results/head_000009_noise_a",
+        "results/head_000009_noise_gui_repeat"
+      ]
+    },
+    "/home/wh/桌面/1008pico/4/head_000010": {
+      "export": "datasets/head_000010_pinhole",
+      "profile": "original_noise_with_thread_fix",
+      "validation_results": [
+        "results/head_000010_racefix_control"
+      ]
+    }
+  }
+}

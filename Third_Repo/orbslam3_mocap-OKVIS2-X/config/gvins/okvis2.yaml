@@ -1,0 +1,108 @@
+%YAML:1.0
+cameras:
+     - {T_SC: # Right camera
+        [ 0.999893235367105,    -0.0138839964192605,    0.00455549234800658,   0.0350751246820374,
+          0.0138335898016083,    0.999844724419467,     0.0109159902785527,   -0.00322315785169526,
+         -0.00470634256122773,  -0.0108518060243712,    0.999930041875783,    -0.0205095767896131,
+          0.0, 0.0, 0.0, 1.0],
+        image_dimension: [752, 480],
+        distortion_coefficients: [-0.27190160,0.06572811,0.00004263,0.00001058],
+        distortion_type: radialtangential,
+        focal_length: [477.11460200,477.01905851],
+        principal_point: [377.85700939,238.45983428],
+        cam_model: pinhole,
+        camera_type: gray, #gray, rgb, gray+depth, rgb+depth
+        mapping: false,
+        mapping_rectification: false,
+        slam_use: okvis} #none, okvis, okvis-depth, okvis-virtual
+
+     - {T_SC: # Left camera
+        [ 0.999971003500193,     -0.00509517554340098,     0.00565962410405724,  -0.0732575747715842,
+          0.00504526502588542,    0.999948566782934,       0.00879824355057411,  -0.0039640680761707,
+         -0.00570416160674596,   -0.00876943412875484,     0.99994527828548,     -0.0196616225886337,
+          0.0, 0.0, 0.0, 1.0],
+        image_dimension: [752, 480],
+        distortion_coefficients: [-0.27158013,0.06525852,-0.00010531,0.00032569],
+        distortion_type: radialtangential,
+        focal_length: [479.61658943,479.53281107],
+        principal_point: [381.12125365,223.51731805],
+        cam_model: pinhole,
+        camera_type: gray, #gray, rgb, gray+depth, rgb+depth
+        mapping: false,
+        mapping_rectification: false,
+        slam_use: okvis} #none, okvis, okvis-depth, okvis-virtual
+
+# additional camera parameters
+camera_parameters:
+    timestamp_tolerance: 0.005 # [s] stereo frame out-of-sync tolerance
+    sync_cameras: [0, 1] # the cameras that will be synchronised
+    image_delay: 0.0 # [s] timestamp_camera_correct = timestamp_camera - image_delay
+    online_calibration: # some parameters to set the online
+        do_extrinsics: false # Do we online-calibrate extrinsics?
+        do_extrinsics_final_ba: false # Do we calibrate extrinsics in final BA?
+        sigma_r: 0.01 # T_SCi position prior stdev [m]
+        sigma_alpha: 0.1 # T_SCi orientation prior stdev [rad]
+        sigma_r_final_ba: 0.03 # T_SCi position prior stdev in final BA [m]
+        sigma_alpha_final_ba: 0.3 # T_SCi orientation prior stdev in final BA [rad]
+    deep_stereo_indices: [0,1] # [left, right] camera indices for the stereo network
+    fov_scale: 1.0 # Divisor for new focal length which is only used when fisheye stereo rectification for dense mapping.
+
+imu_parameters:
+    use: true
+    a_max: 176.0
+    g_max: 7.8
+    sigma_g_c: 8.0e-3 # gyro noise density [rad/s/sqrt(Hz)]
+    sigma_a_c: 4.0e-2 # accelerometer noise density [m/s^2/sqrt(Hz)]
+    sigma_bg: 0.01 # gyro bias prior [rad/s]
+    sigma_ba: 0.1 # accelerometer bias prior [m/s^2]
+    sigma_gw_c: 20.0e-5 # gyro drift noise density [rad/s^s/sqrt(Hz)]
+    sigma_aw_c: 20.0e-4 # accelerometer drift noise density [m/s^2/sqrt(Hz)]
+    g: 9.787561
+    g0: [0.0, 0.0, 0.0]
+    a0: [0.0, 0.0, 0.0]
+    s_a: [1.0, 1.0, 1.0]
+    T_BS: 
+        [1.0, 0.0, 0.0, 0.0,
+         0.0, 1.0, 0.0, 1.0,
+         0.0, 0.0, 1.0, 0.0,
+         0.0, 0.0, 0.0, 1.0]
+
+frontend_parameters:
+    detection_threshold: 34.0
+    absolute_threshold: 4.0
+    matching_threshold: 60.0
+    octaves: 0
+    max_num_keypoints: 1000
+    keyframe_overlap: 0.6
+    use_cnn: false
+    parallelise_detection: true
+    num_matching_threads: 4
+
+
+estimator_parameters:
+    num_keyframes: 5
+    num_loop_closure_frames: 3 
+    num_imu_frames: 3
+    do_loop_closures: false 
+    do_final_ba: true
+    enforce_realtime: false
+    realtime_min_iterations: 3
+    realtime_max_iterations: 10 
+    realtime_time_limit: 0.035
+    realtime_num_threads: 3
+    full_graph_iterations: 50
+    full_graph_num_threads: 3
+    p_dbow: 0.55
+    drift_percentage_heuristic: 5.5
+
+output_parameters:
+    display_topview: true
+    display_matches: false
+    display_overhead: false
+    enable_submapping: false
+
+gps_parameters:
+    data_type: cartesian
+    r_SA: [-0.01, -0.03, -0.06]
+    yaw_error_threshold: 1.0
+    robust_gps_init: true

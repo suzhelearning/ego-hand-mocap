@@ -1,0 +1,13 @@
+.idea/*
+# All directories starting with build in the repository root
+/build*
+.vscode/*
+*.png
+*.asv
+/documentation
+/datasets/
+/logs/
+/results/
+slam/
+__pycache__/
+/.pixi/envs/

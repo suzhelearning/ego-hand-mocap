@@ -1,0 +1,4 @@
+Source: /home/current/syz/mocap
+Source commit: 6f045ccaa5c07d7cc42569365773d85e4432a3f3
+Copied from working tree on 2026-10-28. Local adaptations are documented in docs/code_migration.md.
+NatNet _sdk files retain NaturalPoint ownership and original headers; see License_OptiTrack_Plugin.pdf.

@@ -1,0 +1,32 @@
+# zenohd Router 访问控制(ACL)配置
+# 由统一入口 ./mocap router 以 `zenohd -c` 加载。
+#
+# 策略:默认拒绝,仅放行项目声明的数据 key 空间(mocap/**、manus/**、tianji/**)
+# 和组件在线状态 tj/live/**。
+# 限制未列出的 key 空间；允许的数据 key 对所有连接者开放。
+# 该 ACL 不验证发布者身份，不能阻止连接者向允许的 key 注入数据或订阅。
+# 数据本身无加密；仅适合受信任的采集局域网，不是身份安全边界。
+#
+# 结构说明(subject 属性全省略 = 通配所有对端):
+#   subjects 定义主体 → policies 把 {subject × rules} 绑定为允许集。
+
+access_control:
+  enabled: true
+  default_permission: deny
+  subjects:
+    - id: anyone
+  rules:
+    - id: data-streams
+      key_exprs: ["mocap/**", "manus/**", "tianji/**"]
+      messages: [put, declare_subscriber, declare_queryable, query, reply]
+      flows: [ingress, egress]
+      permission: allow
+    - id: liveliness
+      key_exprs: ["tj/live/**"]
+      messages: [liveliness_token, declare_liveliness_subscriber, liveliness_query]
+      flows: [ingress, egress]
+      permission: allow
+  policies:
+    - id: allow-data
+      subjects: [anyone]
+      rules: [data-streams, liveliness]

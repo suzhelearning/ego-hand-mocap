@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OKVIS 三维轨迹回放</title>
+<style>
+:root{--ink:#17334e;--muted:#51677e;--paper:#f0f4f8;--surface:#fff;--line:#ccd8e5;--blue:#215ec5;--amber:#ad650e;--red:#b43247;--green:#127b59;--space:16px}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 "Noto Sans CJK SC","Microsoft YaHei",sans-serif}button,select,input{font:inherit}button,select{min-height:40px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);padding:7px 12px}button{cursor:pointer}button:hover{background:#e6eef9}button:disabled{opacity:.5;cursor:default}button.active,button.primary{background:var(--blue);border-color:var(--blue);color:white}button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #b86f10;outline-offset:3px}a{color:var(--blue)}h1{font-size:24px;margin:0;font-weight:650}h2{font-size:16px;margin:0 0 12px}p{margin:8px 0}.app{display:grid;grid-template-columns:270px minmax(0,1fr);min-height:100vh}.sidebar{background:#e4ecf5;padding:24px 20px;border-right:1px solid var(--line)}.sidebar section{margin-top:24px;padding-top:20px;border-top:1px solid #bdcddd}.brand{font-weight:750;font-size:25px;letter-spacing:-1px}.brand span{color:var(--blue)}.head>div{min-width:0}.subtitle{overflow-wrap:anywhere;color:var(--muted);font-size:13px;margin-top:4px}.field{display:block;margin-bottom:14px}.field>span{display:block;font-size:13px;font-weight:600;margin-bottom:6px}select{width:100%;font-size:13px}.check{display:flex;gap:9px;align-items:flex-start;margin:10px 0;cursor:pointer}.check input{margin-top:5px;accent-color:var(--blue)}.hint{font-size:13px;color:var(--muted)}.axis-key{display:flex;gap:15px;font-weight:700}.x{color:var(--red)}.y{color:var(--green)}.z{color:var(--blue)}.legend{display:flex;gap:8px;align-items:center;font-size:13px;margin:6px 0}.swatch{width:23px;height:3px;background:var(--blue)}.swatch.raw{background:#9baabb}.swatch.map{height:5px;width:5px;background:#95a8be;border-radius:50%}.main{padding:20px 24px;min-width:0}.head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}.badge{font-size:13px;padding:5px 10px;background:#dde9f8;border:1px solid #b8cceb;border-radius:20px;white-space:nowrap}.toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;background:var(--surface);border:1px solid var(--line);border-bottom:0;padding:10px 12px;border-radius:8px 8px 0 0}.toolbar .spacer{flex:1}.chart-wrap{position:relative;border:1px solid var(--line);background:white;min-height:420px}#scene{height:52vh;min-height:440px}.plot-hint{position:absolute;bottom:10px;left:20px;background:#ffffffde;padding:4px 8px;font-size:12px;color:var(--muted);pointer-events:none}.empty{position:absolute;inset:0;display:grid;place-items:center;background:#f8fbfd;color:var(--muted);padding:30px;text-align:center;z-index:2}.empty.hidden{display:none}.timeline{background:var(--surface);padding:14px 16px;border:1px solid var(--line);border-top:0;border-radius:0 0 8px 8px}.play-row{display:flex;align-items:center;gap:12px}.play-row select{width:88px}.time{min-width:150px;font-variant-numeric:tabular-nums;font-weight:600}.slider{width:100%;accent-color:var(--blue);margin:14px 0 0;min-height:24px}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--line);margin:16px 0}.metric{background:white;padding:12px 16px}.metric .label{font-size:12px;color:var(--muted)}.metric .value{font-size:19px;margin-top:3px;font-variant-numeric:tabular-nums}.details{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,1fr);gap:16px}.panel{background:white;border:1px solid var(--line);border-radius:8px;overflow:hidden}.panel-title{padding:12px 16px;border-bottom:1px solid var(--line);font-weight:600;display:flex;justify-content:space-between;gap:12px}#xyz{height:215px}.images{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}.images figure{margin:0;background:white}.images img{display:block;width:100%;aspect-ratio:640/553;object-fit:contain;background:#eef3f8}.images figcaption{padding:5px 10px;font-size:12px;color:var(--muted)}.note{padding:10px 16px;font-size:12px;color:var(--muted)}.notice{margin-top:16px;color:var(--muted);font-size:13px}.path{font-size:12px;word-break:break-all;color:var(--muted)}.status{padding-top:12px;font-size:13px;color:var(--muted)}.quality-good{color:var(--green)}.quality-marginal{color:var(--amber)}.quality-lost{color:var(--red)}.small-actions{display:flex;gap:8px;flex-wrap:wrap}.small-actions button{font-size:13px;padding:7px 10px}.source-status{font-size:12px;font-weight:400;color:var(--muted)}.error{color:var(--red)}
+@media(max-width:1050px){.app{grid-template-columns:235px minmax(0,1fr)}.main{padding:16px}.details{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.app{display:block}.sidebar{border-right:0;padding:16px}.sidebar section{margin-top:12px;padding-top:12px}.sidebar .controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}.main{padding:12px}.head{align-items:flex-start}h1{font-size:21px}#scene{height:420px;min-height:360px}.time{min-width:0;font-size:13px}.play-row{gap:8px}.metric{padding:10px}.metric .value{font-size:16px}.plot-hint{font-size:11px;left:5px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+<script src="/plotly.min.js"></script>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand">OKVIS <span>3D</span></div><div class="subtitle">三维轨迹检查与时间回放</div>
+  <section class="controls">
+    <label class="field"><span>运行结果</span><select id="run" aria-label="选择运行结果"></select></label>
+    <label class="field"><span>轨迹版本</span><select id="source"><option value="live">实时输出</option><option value="final">结束时全局轨迹</option><option value="ba">最终优化轨迹</option></select></label>
+  </section>
+  <section>
+    <h2>显示内容</h2>
+    <label class="check"><input type="checkbox" id="overlay" checked><span>叠加实时输出，观察优化变化</span></label>
+    <label class="check"><input type="checkbox" id="cloud"><span>稀疏地图点云</span></label>
+    <label class="check"><input type="checkbox" id="pose" checked><span>当前 IMU 姿态坐标轴</span></label>
+    <label class="check"><input type="checkbox" id="follow"><span>实时更新时跟到最新帧</span></label>
+    <div class="axis-key"><span class="x">X 红</span><span class="y">Y 绿</span><span class="z">Z 蓝</span></div>
+    <p class="hint">Z 轴向上；坐标、点云和轨迹单位均为米。显示 IMU 位姿。</p>
+  </section>
+  <section>
+    <h2>图例</h2>
+    <div class="legend"><i class="swatch"></i>所选轨迹版本</div>
+    <div class="legend"><i class="swatch raw"></i>实时输出</div>
+    <div class="legend"><i class="swatch map"></i>地图点（最多 15,000 个）</div>
+    <p class="hint">点云隐藏了距离轨迹过远的点以保持可读性；不作为精度判断依据。</p>
+  </section>
+  <section>
+    <button id="download" class="primary" style="width:100%">保存离线回放 HTML</button>
+    <button id="csv" style="width:100%;margin-top:8px">导出所选轨迹 CSV</button>
+    <div id="status" class="status" role="status" aria-live="polite">正在读取结果…</div>
+  </section>
+</aside>
+<main class="main">
+  <header class="head"><div><h1 id="title">三维轨迹</h1><div id="runName" class="subtitle">本机数据，不上传</div></div><span id="badge" class="badge">读取中</span></header>
+  <div class="toolbar" aria-label="三维视角工具">
+    <button id="orbit" class="active" aria-pressed="true">旋转</button><button id="pan" aria-pressed="false">平移</button>
+    <button id="view3d">三维</button><button id="xy">俯视 XY</button><button id="xz">侧视 XZ</button><button id="yz">侧视 YZ</button>
+    <span class="spacer"></span><button id="rotateLeft" aria-label="视角向左旋转">↶ 15°</button><button id="rotateRight" aria-label="视角向右旋转">↷ 15°</button><button id="zoomIn" aria-label="放大">＋</button><button id="zoomOut" aria-label="缩小">−</button><button id="fit">适配范围</button>
+  </div>
+  <div class="chart-wrap"><div id="scene" aria-label="三维轨迹，可旋转缩放；也可用上方视角按钮操作"></div><div class="plot-hint">拖动旋转 · 平移按钮后拖动 · 滚轮缩放 · 刷新不重置视角</div><div id="empty" class="empty">正在读取轨迹…</div></div>
+  <section class="timeline" aria-label="轨迹回放">
+    <div class="play-row"><button id="play" class="primary">播放</button><button id="first">首帧</button><button id="last">末帧</button><span id="time" class="time">0.00 / 0.00 秒</span><select id="speed" aria-label="播放速度"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select><span class="spacer"></span><span id="quality">—</span></div>
+    <input id="slider" class="slider" type="range" min="0" max="0" value="0" aria-label="回放帧索引">
+  </section>
+  <section class="metrics" aria-label="轨迹数值">
+    <div class="metric"><div class="label">当前 XYZ / m</div><div class="value" id="position">—</div></div>
+    <div class="metric"><div class="label">所选轨迹 / 帧</div><div class="value" id="count">—</div></div>
+    <div class="metric"><div class="label">XYZ 运动范围 / m</div><div class="value" id="extent">—</div></div>
+    <div class="metric"><div class="label">起终点距离 / m（非误差指标）</div><div class="value" id="distance">—</div></div>
+  </section>
+  <div class="details">
+    <section class="panel"><div class="panel-title">XYZ 随时间变化<span class="source-status">点击曲线定位帧</span></div><div id="xyz" aria-label="位置随时间的二维曲线，X红 Y绿 Z蓝"></div></section>
+    <section class="panel"><div class="panel-title">对应相机帧<span id="frameMode" class="source-status"></span></div><div class="images"><figure><img id="left" alt="当前时间的左相机帧"><figcaption>cam0 / 左相机</figcaption></figure><figure><img id="right" alt="当前时间的右相机帧"><figcaption>cam1 / 右相机</figcaption></figure></div><div id="imageNote" class="note">相机帧来自原始数据的已转换图像。</div></section>
+  </div>
+  <p class="notice">固定世界坐标显示，不对轨迹做旋转或漂移修正。初始绝对航向没有外部参考；Tracking Good 表示跟踪状态，不能证明位置准确。</p><div id="path" class="path"></div>
+</main>
+</div>
+<script>/*__INITIAL_DATA__*/</script>
+<script>
+(() => {
+'use strict';
+const $=id=>document.getElementById(id), offline=!!window.OFFLINE_DATA;
+const COLORS={x:'#b43247',y:'#127b59',z:'#215ec5',raw:'#9baabb'};
+let data=null, runId='', rows=[], index=0, bounds=null, playing=false, camera=null, initialized=false, busy=false;
+let lastTick=0,lastRender=0,lastImage=0,loadedRuns=[], sourceChosen=false, signature='', imageStamp=null, dragMode='orbit';
+const scene=$('scene'), xyz=$('xyz');
+const vector=r=>r.slice(1,4), fmt=(x,n=3)=>Number(x).toFixed(n);
+const startEye={x:1.2,y:-1.4,z:.95};
+const offlinePlaceholder='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="640" height="553"><rect width="640" height="553" fill="#eef3f8"/><text x="320" y="270" text-anchor="middle" fill="#51677e" font-size="24">离线快照不包含相机视频</text></svg>');
+function setStatus(text,error=false){$('status').textContent=text;$('status').classList.toggle('error',error)}
+function elapsed(r){return (r[0]-rows[0][0])*1e-9}
+function ranges(arr){let lo=[0,0,0],hi=[0,0,0];for(const r of arr)for(let k=0;k<3;k++){lo[k]=Math.min(lo[k],r[k+1]);hi[k]=Math.max(hi[k],r[k+1])}const rad=Math.max(...hi.map((v,k)=>v-lo[k]),1)*.58;return lo.map((v,k)=>[(v+hi[k])/2-rad,(v+hi[k])/2+rad])}
+function axes(){return ['X','Y','Z'].map((name,k)=>({title:{text:name+' / m'},range:bounds[k],autorange:false,backgroundcolor:'#f8fbfd',gridcolor:'#dce5ee',zerolinecolor:'#859eb7',showbackground:true,tickfont:{size:11},showspikes:false}))}
+function baseLayout(){const a=axes();return {paper_bgcolor:'#fff',font:{family:'Noto Sans CJK SC, sans-serif',color:'#17334e'},margin:{l:0,r:0,t:10,b:0},showlegend:false,uirevision:runId||'offline',scene:{xaxis:a[0],yaxis:a[1],zaxis:a[2],aspectmode:'cube',dragmode:dragMode,camera:camera||{eye:startEye,up:{x:0,y:0,z:1}},uirevision:runId||'offline'},hovermode:'closest'}}
+function traces(){const r=rows[index];const pts=data.points||[];const live=data.trajectories.live||[];
+ return [
+  {type:'scatter3d',mode:'markers',x:pts.map(p=>p[0]),y:pts.map(p=>p[1]),z:pts.map(p=>p[2]),marker:{size:1.4,color:'#849cb7',opacity:.4},visible:$('cloud').checked,name:'稀疏地图',hoverinfo:'skip'},
+  {type:'scatter3d',mode:'lines',x:live.map(r=>r[1]),y:live.map(r=>r[2]),z:live.map(r=>r[3]),line:{color:COLORS.raw,width:2},visible:$('overlay').checked&&$('source').value!=='live',name:'实时输出',hoverinfo:'skip'},
+  {type:'scatter3d',mode:'lines',x:rows.map(r=>r[1]),y:rows.map(r=>r[2]),z:rows.map(r=>r[3]),line:{color:COLORS.z,width:4},name:'所选轨迹',hoverinfo:'skip'},
+  {type:'scatter3d',mode:'markers+text',x:[0],y:[0],z:[0],text:['世界原点'],textposition:'top center',marker:{size:4,color:'#17334e'},hovertemplate:'世界原点<extra></extra>'},
+  {type:'scatter3d',mode:'markers',x:[r[1]],y:[r[2]],z:[r[3]],marker:{size:6,color:'#cb4c24'},name:'当前位姿',hovertemplate:'X %{x:.3f} m<br>Y %{y:.3f} m<br>Z %{z:.3f} m<extra>当前帧</extra>'},
+  ...[COLORS.x,COLORS.y,COLORS.z].map((color,k)=>({type:'scatter3d',mode:'lines+text',x:[],y:[],z:[],text:['','XYZ'[k]],textposition:'top center',textfont:{color,size:13},line:{color,width:5},visible:$('pose').checked,hoverinfo:'skip'}))
+ ]}
+function poseEndpoints(r){let [x,y,z,w]=r.slice(4,8),norm=Math.hypot(x,y,z,w);x/=norm;y/=norm;z/=norm;w/=norm;
+ const columns=[[1-2*(y*y+z*z),2*(x*y+w*z),2*(x*z-w*y)],[2*(x*y-w*z),1-2*(x*x+z*z),2*(y*z+w*x)],[2*(x*z+w*y),2*(y*z-w*x),1-2*(x*x+y*y)]];
+ const scale=Math.max(.12,Math.min(.5,(bounds[0][1]-bounds[0][0])*.07));return columns.map(c=>c.map((v,k)=>r[k+1]+v*scale))}
+function metrics(){const n=rows.length;let lo=vector(rows[0]),hi=lo.slice();for(const r of rows)for(let k=0;k<3;k++){lo[k]=Math.min(lo[k],r[k+1]);hi[k]=Math.max(hi[k],r[k+1])}
+ $('count').textContent=n.toLocaleString();$('extent').textContent=hi.map((v,k)=>fmt(v-lo[k],2)).join(' / ');$('distance').textContent=fmt(Math.hypot(...vector(rows[n-1]).map((v,k)=>v-rows[0][k+1])));$('slider').max=n-1;
+}
+async function drawGraphs(reset=false){if(!rows.length)return;const layout=baseLayout();await Plotly.react(scene,traces(),layout,{responsive:true,displaylogo:false,displayModeBar:false,scrollZoom:true});
+ const t=rows.map(elapsed), colors=[COLORS.x,COLORS.y,COLORS.z];await Plotly.react(xyz,[1,2,3].map((k)=>({x:t,y:rows.map(r=>r[k]),type:'scatter',mode:'lines',name:'XYZ'[k-1],line:{color:colors[k-1],width:1.7},hovertemplate:'%{x:.2f} 秒 · %{y:.3f} m<extra>%{fullData.name}</extra>'})),{paper_bgcolor:'#fff',plot_bgcolor:'#fff',font:{family:'Noto Sans CJK SC,sans-serif',color:'#17334e',size:11},margin:{l:48,r:18,t:18,b:40},legend:{orientation:'h',x:0,y:1.2},xaxis:{title:{text:'时间 / s'},gridcolor:'#e2e9f1'},yaxis:{title:{text:'位置 / m'},gridcolor:'#e2e9f1'},uirevision:runId+'-'+$('source').value,shapes:[{type:'line',x0:elapsed(rows[index]),x1:elapsed(rows[index]),y0:0,y1:1,yref:'paper',line:{color:'#b86f10',width:1}}]},{responsive:true,displaylogo:false,displayModeBar:false});
+ if(!initialized){scene.on('plotly_relayout',e=>{if(e['scene.camera']){camera=e['scene.camera'];scene.dataset.camera=JSON.stringify(camera)}});xyz.on('plotly_click',e=>{if(e.points?.length)setIndex(e.points[0].pointIndex,true)});initialized=true}
+ metrics();updateFrame(true);
+}
+function setIndex(i,manual=false){index=Math.max(0,Math.min(rows.length-1,Number(i)||0));if(manual){pause();$('follow').checked=false}updateFrame(true)}
+function updateFrame(force=false){if(!rows.length)return;const r=rows[index];$('slider').value=index;$('time').textContent=fmt(elapsed(r),2)+' / '+fmt(elapsed(rows.at(-1)),2)+' 秒';$('position').textContent=vector(r).map(v=>fmt(v)).join(' / ');
+ const quality=['Good','Marginal','Lost'][r[17]]||'未记录';$('quality').textContent='跟踪：'+(quality==='Lost'&&index===0?'初始化首帧':quality);$('quality').className='quality-'+quality.toLowerCase();
+ const end=poseEndpoints(r);const indices=[4,5,6,7];const xs=[[r[1]],...end.map(p=>[r[1],p[0]])],ys=[[r[2]],...end.map(p=>[r[2],p[1]])],zs=[[r[3]],...end.map(p=>[r[3],p[2]])];
+ Plotly.restyle(scene,{x:xs,y:ys,z:zs},indices);Plotly.relayout(xyz,{'shapes[0].x0':elapsed(r),'shapes[0].x1':elapsed(r)});
+ const now=performance.now();if((force||now-lastImage>200)&&imageStamp!==r[0]){lastImage=now;imageStamp=r[0];if(!offline&&data.hasFrames){$('left').src='/frame?run='+runId+'&cam=0&t='+r[0];$('right').src='/frame?run='+runId+'&cam=1&t='+r[0]}}
+}
+function pause(){playing=false;$('play').textContent='播放'}
+function play(){if(!rows.length)return;if(index===rows.length-1)index=0;playing=true;lastTick=performance.now();$('play').textContent='暂停';$('follow').checked=false}
+function tick(now){requestAnimationFrame(tick);if(!playing||!rows.length)return;const target=elapsed(rows[index])+(now-lastTick)/1000*Number($('speed').value);lastTick=now;let i=index;while(i+1<rows.length&&elapsed(rows[i+1])<=target)i++;
+ // Carry sub-frame elapsed time rather than dropping it at each animation tick.
+ if(i===index){lastTick=now-(target-elapsed(rows[index]))/Number($('speed').value)*1000;return}
+ index=i;if(now-lastRender>70){lastRender=now;updateFrame(false)}if(index===rows.length-1){pause();updateFrame(true)}}
+function setCamera(eye,up={x:0,y:0,z:1}){camera={eye,up,center:{x:0,y:0,z:0}};Plotly.relayout(scene,{'scene.camera':camera})}
+function mode(name){dragMode=name;Plotly.relayout(scene,{'scene.dragmode':name});for(const id of ['orbit','pan']){$(id).classList.toggle('active',id===name);$(id).setAttribute('aria-pressed',String(id===name))}}
+function nearestTime(stamp){let lo=0,hi=rows.length-1;while(lo<hi){const mid=(lo+hi)>>1;if(rows[mid][0]<stamp)lo=mid+1;else hi=mid}return lo}
+function sourceOptions(){for(const option of $('source').options)option.disabled=!(data.trajectories[option.value]?.length)}
+async function accept(next,reset=false){const oldStamp=rows[index]?.[0];data=next;$('title').textContent=data.dataset+' · 三维轨迹';$('runName').textContent=data.name;$('path').textContent=data.result;sourceOptions();
+ if(reset||!data.trajectories[$('source').value]?.length||!sourceChosen)$('source').value=data.preferred;
+ if(reset&&!offline&&!data.completed)$('follow').checked=true;rows=data.trajectories[$('source').value]||[];$('badge').textContent=data.completed?'最终优化已就绪':'实时读取 / 可回放';
+ if(!rows.length){$('empty').textContent='等待第一帧轨迹输出…';$('empty').classList.remove('hidden');return}
+ $('empty').classList.add('hidden');if(reset){index=0;camera=null;bounds=null;signature='';pause()}
+ if(!bounds)bounds=offline||data.completed?ranges(rows):[[-2,2],[-2,2],[-2,2]];
+ if($('follow').checked)index=rows.length-1;else index=oldStamp&&!reset?nearestTime(oldStamp):Math.min(index,rows.length-1);
+ const sig=$('source').value+':'+rows.length+':'+data.completed+':'+data.revision+':'+data.points.length+':'+JSON.stringify(rows.at(-1));
+ if(sig!==signature){signature=sig;await drawGraphs(reset)}
+ if(offline||!data.hasFrames){$('left').src=offlinePlaceholder;$('right').src=offlinePlaceholder;$('imageNote').textContent='离线快照包含轨迹、姿态、曲线和点云。要查看对应图像，请运行本机回放脚本。'}
+ else $('imageNote').textContent='相机帧来自原始数据的已转换图像；按采集时间关联。';
+ $('cloud').disabled=!data.points.length;$('cloud').title=data.points.length?'最终优化地图':'点云在最终优化后可用';$('frameMode').textContent=offline?'离线快照':'采集时间同步';setStatus(offline?'离线文件：可拖动、播放，无需网络。':'每 2 秒读取最新结果；当前视角和坐标范围保持不变。');
+}
+async function refreshRuns(){const response=await fetch('/api/runs');if(!response.ok)throw Error('无法读取运行列表');loadedRuns=await response.json();const desired=runId||location.hash.slice(1)||loadedRuns[0]?.id||'';const before=$('run').value;$('run').replaceChildren(...loadedRuns.map(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=r.dataset+' / '+(r.name==='results'?'首次验证结果':r.name);o.title=r.path;return o}));runId=loadedRuns.some(r=>r.id===desired)?desired:loadedRuns[0]?.id||'';$('run').value=runId;return before!==runId}
+async function poll(reset=false){if(busy||offline)return;busy=true;try{if(!runId||reset)await refreshRuns();if(!runId){$('empty').textContent='没有轨迹结果。先启动 SLAM，结果产生后会自动出现。';setStatus('等待运行结果');return}const response=await fetch('/api/data?run='+runId);if(!response.ok)throw Error((await response.json()).error||'数据读取失败');await accept(await response.json(),reset)}catch(e){setStatus(e.message,true);$('empty').textContent=e.message;if(!data)$('empty').classList.remove('hidden')}finally{busy=false}}
+$('run').addEventListener('change',()=>{runId=$('run').value;location.hash=runId;sourceChosen=false;poll(true)});
+$('source').addEventListener('change',async()=>{sourceChosen=true;pause();signature='';await accept(data);});
+for(const id of ['overlay','cloud','pose'])$(id).addEventListener('change',()=>drawGraphs());
+$('follow').addEventListener('change',()=>{if($('follow').checked){pause();setIndex(rows.length-1)}});
+$('play').onclick=()=>playing?pause():play();$('first').onclick=()=>setIndex(0,true);$('last').onclick=()=>setIndex(rows.length-1,true);$('slider').addEventListener('input',()=>setIndex($('slider').value,true));
+$('orbit').onclick=()=>mode('orbit');$('pan').onclick=()=>mode('pan');$('view3d').onclick=()=>setCamera({...startEye});$('xy').onclick=()=>setCamera({x:0,y:0,z:2.5},{x:0,y:1,z:0});$('xz').onclick=()=>setCamera({x:0,y:-2.5,z:0});$('yz').onclick=()=>setCamera({x:2.5,y:0,z:0});
+for(const [id,theta]of [['rotateLeft',-.2618],['rotateRight',.2618]])$(id).onclick=()=>{const e=camera?.eye||startEye;setCamera({x:e.x*Math.cos(theta)-e.y*Math.sin(theta),y:e.x*Math.sin(theta)+e.y*Math.cos(theta),z:e.z},camera?.up)};
+for(const[id,factor]of [['zoomIn',.8],['zoomOut',1.25]])$(id).onclick=()=>{const e=camera?.eye||startEye;setCamera({x:e.x*factor,y:e.y*factor,z:e.z*factor},camera?.up)};
+$('fit').onclick=()=>{if(!rows.length)return;bounds=ranges(rows);const a=axes();Plotly.relayout(scene,{'scene.xaxis':a[0],'scene.yaxis':a[1],'scene.zaxis':a[2]})};
+function save(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+$('csv').onclick=()=>{if(!rows.length)return;save(new Blob(['timestamp_ns,tx,ty,tz,qx,qy,qz,qw,vx,vy,vz,bgx,bgy,bgz,bax,bay,baz,quality\n'+rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'}),'trajectory_'+$('source').value+'.csv')};
+$('download').onclick=()=>{if(offline){save(new Blob([document.documentElement.outerHTML],{type:'text/html'}),'replay_3d.html')}else{const a=document.createElement('a');a.href='/download?run='+runId;a.download='replay_3d.html';a.click()}};
+requestAnimationFrame(tick);
+if(offline){const o=document.createElement('option');o.textContent=window.OFFLINE_DATA.name;o.value='offline';$('run').append(o);$('run').disabled=true;$('follow').disabled=true;accept(window.OFFLINE_DATA,true)}else{poll(true);setInterval(()=>poll(),2000);setInterval(()=>refreshRuns().catch(()=>{}),15000)}
+window.viewerState=()=>({runId,source:$('source').value,index,count:rows.length,playing,camera,bounds,offline});
+})();
+</script>
+</body></html>

@@ -1,0 +1,25 @@
+# Local environments and generated build files
+.pixi/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.DS_Store
+
+# Recordings, processing outputs and machine-specific reports
+/data/
+/capture_sessions/
+/results/
+/reports/
+/calibration/
+
+# Local credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key

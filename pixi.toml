@@ -1,0 +1,23 @@
+[workspace]
+name = "ego-hand-ground-truth"
+version = "0.1.0"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tasks]
+mocap = "python -m mocap_runtime"
+test = "python -m pytest"
+motion = "python -m motion_web"
+
+[dependencies]
+python = "3.12.*"
+pip = "*"
+setuptools = ">=77"
+numpy = ">=1.26,<3"
+scipy = ">=1.11,<2"
+pytest = ">=8,<10"
+zenoh = ">=1.9,<1.10"
+
+[pypi-dependencies]
+eclipse-zenoh = ">=1.9,<1.10"
+ego-hand-ground-truth = { path = ".", editable = true }

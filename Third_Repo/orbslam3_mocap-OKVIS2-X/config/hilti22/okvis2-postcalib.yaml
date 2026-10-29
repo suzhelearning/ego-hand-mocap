@@ -1,0 +1,146 @@
+%YAML:1.2
+cameras: # the five T_SC were obtained after final-ba in exp04.
+  - {T_SC:
+       [0.00171502423118752,  0.00391793991280726,     0.99999085417754,   0.0519866219606618,
+        0.999956117566529,    0.00920308984758067,    -0.00175102213932354,   0.0475023047642841,
+       -0.00920986607728286,  0.999949975190808,      -0.00390198446197942,  -0.0124626058914925,
+                        0,                    0,                    0,                    1],
+     image_dimension: [720, 540],
+     distortion_coefficients: [-0.036461810007375715, -0.005444851637229522, 0.0027544255985531532, -0.0011093007039524076],
+     distortion_type: equidistant,
+     focal_length: [350.3728036482598, 350.4644910214914],
+     principal_point: [367.5982315054545, 253.84756624017055],
+     cam_model: pinhole,
+     camera_type: gray, #gray, rgb, gray+depth, rgb+depth
+     mapping_rectification: true,
+     slam_use: okvis} #none, okvis, okvis-depth, okvis-virtual
+
+  - {T_SC:
+       [-0.00436449089103585,  0.000868593761225778,     0.999990098333048,       0.0520447049972758,
+         0.99998060075612,     0.00444785352376198,      0.00436058602246164,    -0.060623175520543,
+        -0.00444402190478316,  0.999989731019229,       -0.000887989527352584,   -0.0125390181892379,
+                           0,                    0,                     0,                     1],
+     image_dimension: [720, 540],
+     distortion_coefficients: [-0.03757458639343802, -0.005391152610508747, 0.0024181795504577054, -0.0008408335480924147],
+     distortion_type: equidistant,
+     focal_length: [351.64657493358027, 351.79425435313976],
+     principal_point: [347.615033118946, 270.724275256626],
+     cam_model: pinhole,
+     camera_type: gray+depth, #gray, rgb, gray+depth, rgb+depth
+     mapping: true,
+     mapping_rectification: true,
+     slam_use: okvis} #none, okvis, okvis-depth, okvis-virtual
+
+  - {T_SC:
+       [0.999966217863046,  0.00807731725270816, -0.00152318044739323,   0.0132574991722166,
+        0.00807315243627882,   -0.999963709805695, -0.00272089716299191, -0.00610191639093756,
+       -0.00154510272047631,  0.00270850837733154,   -0.999995138308159,  -0.0405168470133638,
+                          0,                    0,                    0,                    1],
+     image_dimension: [720, 540],
+     distortion_coefficients: [-0.03797509, -0.00631309,  0.00478156, -0.00181366],
+     distortion_type: equidistant,
+     focal_length: [349.65420714, 349.69004533],
+     principal_point: [375.16391931, 268.63008188],
+     cam_model: pinhole,
+     camera_type: gray, #gray, rgb, gray+depth, rgb+depth
+     slam_use: okvis} #none, okvis, okvis-depth, okvis-virtual
+
+  - {T_SC:
+       [-0.999909939785586,   0.0131448803846207,  0.00270636983049374,     -0.0038008975557,
+         0.00266742200317868, -0.00297959456655494,    0.999992003406065,   0.0632712033594316,
+         0.0131528391551919,    0.999909162942261,  0.00294426328046249,  -0.0124809287512513,
+                          0,                    0,                    0,                    1],
+     image_dimension: [720, 540],
+     distortion_coefficients: [-0.0408695,   0.0111725,  -0.01325958,  0.00386262],
+     distortion_type: equidistant,
+     focal_length: [350.95815742, 351.29060578],
+     principal_point: [364.37064004, 266.19201052],
+     cam_model: pinhole,
+     camera_type: gray, #gray, rgb, gray+depth, rgb+depth
+     slam_use: okvis} #none, okvis, okvis-depth, okvis-virtual
+
+  - {T_SC:
+       [0.999970429058016,  0.00572198970315673,  0.00513807778891305, -0.00440809676145321,
+        0.00515860852345444, -0.00357908104220317,   -0.999980289274241,  -0.0756691970019541,
+       -0.00570348732177924,    0.999977224246998, -0.00360849271025909,  -0.0121255839406544,
+                          0,                    0,                    0,                    1],
+     image_dimension: [720, 540],
+     distortion_coefficients: [-0.03496239, -0.00947668,  0.00592657, -0.00186744],
+     distortion_type: equidistant,
+     focal_length: [349.97099061, 350.18639289],
+     principal_point: [342.73031692, 259.72588616],
+     cam_model: pinhole,
+     camera_type: gray, #gray, rgb, gray+depth, rgb+depth
+     slam_use: okvis} #none, okvis, okvis-depth, okvis-virtual
+
+# additional camera parameters
+camera_parameters:
+  timestamp_tolerance: 0.005 # [s] stereo frame out-of-sync tolerance
+  sync_cameras: [ 0, 1, 2, 3, 4 ] # the cameras that will be synchronised
+  image_delay: 0.0018 # [s] timestamp_camera_correct = timestamp_camera - image_delay
+  online_calibration: # some parameters to set the online
+    do_extrinsics: false # Do we online-calibrate extrinsics?
+    do_extrinsics_final_ba: false # Do we calibrate extrinsics in final BA?
+    sigma_r: 0.001 # T_SCi position prior stdev [m]
+    sigma_alpha: 0.005 # T_SCi orientation prior stdev [rad]
+    sigma_r_final_ba: 0.003 # T_SCi position prior stdev in final BA [m]
+    sigma_alpha_final_ba: 0.016 # T_SCi orientation prior stdev in final BA [rad]
+  deep_stereo_indices: [1,0]
+  fov_scale: 0.9 # Divisor for new focal length which is only used when fisheye stereo rectification for dense mapping.
+
+imu_parameters:
+  use: true
+  a_max: 176.0 # acceleration saturation [m/s^2]
+  g_max: 7.8 # gyro saturation [rad/s]
+  sigma_g_c: 20.0e-4 # gyro noise density [rad/s/sqrt(Hz)]
+  sigma_a_c: 2.0e-2 # accelerometer noise density [m/s^2/sqrt(Hz)]
+  sigma_bg: 0.01 # gyro bias prior [rad/s]
+  sigma_ba: 0.1 # accelerometer bias prior [m/s^2]
+  sigma_gw_c: 20.0e-5 #0.000266 #20.0e-5 # 4.0e-6 # gyro drift noise density [rad/s^s/sqrt(Hz)]
+  sigma_aw_c: 20.0e-3 #0.043 #20.0e-3 # 4.0e-5 # accelerometer drift noise density [m/s^2/sqrt(Hz)]
+  g: 9.81007 # Earth's acceleration due to gravity [m/s^2]
+  g0: [ 0.0, 0.0, 0.0 ] # initial gyro bias [rad/s]
+  a0: [ 0.1, 0.04, 0.15 ] #[ -0.05, 0.09, 0.01 ] # initial accelerometer bias [m/s^2]
+  s_a: [ 1.0, 1.0, 1.0 ]
+  # tranform Body-Sensor (IMU)
+  T_BS:
+    [1.0000, 0.0000, 0.0000, 0.0000,
+     0.0000, 1.0000, 0.0000, 0.0000,
+     0.0000, 0.0000, 1.0000, 0.0000,
+     0.0000, 0.0000, 0.0000, 1.0000]
+
+# frontend: detection etc.
+frontend_parameters:
+  detection_threshold: 50.0 #42.0 # detection threshold. By default the uniformity radius in pixels
+  absolute_threshold: 20.0 # absolute Harris corner threshold (noise floor)
+  matching_threshold: 60.0 # BRISK descriptor matching threshold
+  octaves: 0 # number of octaves for detection. 0 means single-scale at highest resolution
+  max_num_keypoints: 700 # restrict to a maximum of this many keypoints per image (strongest ones)
+  keyframe_overlap: 0.59 # minimum field-of-view overlap
+  use_cnn: false # use the CNN (if available) to filter out dynamic content / sky
+  parallelise_detection: true # Run parallel detect & describe.
+  num_matching_threads: 4 # Parallelise matching with this number of threads.
+
+# estimator parameters
+estimator_parameters:
+  num_keyframes: 5 # number of keyframes in optimisation window
+  num_loop_closure_frames: 5 # number of loop closure frames in optimisation window
+  num_imu_frames: 3 # number of frames linked by most recent nonlinear IMU error terms
+  do_loop_closures: true # whether to do VI-SLAM or VIO
+  do_final_ba: true # Whether to run a full final BA
+  enforce_realtime: false # whether to limit the time budget for optimisation
+  realtime_min_iterations: 3 # minimum number of iterations always performed
+  realtime_max_iterations: 10 # never do more than these, even if not converged
+  realtime_time_limit: 0.035 # time budget for realtime optimisation [s]
+  realtime_num_threads: 4 # number of threads for the realtime optimisation
+  full_graph_iterations: 15 # don't do more than these for the full (background) optimisation
+  full_graph_num_threads: 2 # number of threads for the full (background) optimisation
+  p_dbow: 0.4 # Match threshold for dBoW -- unfortunately this varies with setups.
+  drift_percentage_heuristic: 1.35 # % allowed drift in loop closures rel. to dist. travelled.
+
+# some options for how and what to output
+output_parameters:
+  display_topview: true # Displays top view of the trajectory. Might become slow for long sequences.
+  display_matches: false  # displays debug video and matches. May be slow.
+  display_overhead: false # debug overhead image. Is slow.
+  enable_submapping: true
