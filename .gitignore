@@ -1,6 +1,7 @@
 # Local environments and generated build files
 .pixi/
 .venv/
+.venvs/
 venv/
 __pycache__/
 *.py[cod]
@@ -16,6 +17,16 @@ dist/
 /results/
 /reports/
 /calibration/
+
+# Separately supplied model assets and local inference outputs
+/Third_Repo/sch_v21_temporal_weights_v1/
+/Third_Repo/sch_v21_temporal_inference_v1/data/
+/Third_Repo/sch_v21_temporal_inference_v1/ego_hand_benchmark/results/
+/Third_Repo/sch_v21_temporal_inference_v1/AnyHand/mano_data/
+/Third_Repo/sch_v21_temporal_inference_v1/AnyHand/pretrained_models/
+/Third_Repo/sch_v21_temporal_inference_v1/WiLoR/mano_data/MANO_RIGHT.pkl
+/Third_Repo/sch_v21_temporal_inference_v1/WiLoR/pretrained_models/
+/Third_Repo/sch_v21_temporal_inference_v1/weights/anyhand/wilor/*.ckpt
 
 # Local credentials
 .env

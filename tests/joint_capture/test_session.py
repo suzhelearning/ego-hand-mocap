@@ -9,7 +9,7 @@ from test_storage import frame, body
 
 
 def config(root, **kwargs):
-    values=dict(output_root=root,session_id='test-session',duration=.01,ego_serial=None,
+    values=dict(mode='h5',output_root=root,session_id='test-session',duration=.01,ego_serial=None,
         motive_server_ip='127.0.0.1',natnet_client_ip='127.0.0.1',ego_ip='127.0.0.1',
         windows_host='windows-pc',no_clock_probes=True,startup_timeout=1,warmup=0,tail=0)
     return SimpleNamespace(**dict(values,**kwargs))
@@ -56,7 +56,7 @@ def test_existing_recording_is_not_touched(tmp_path):
     result=run_session(config(tmp_path),threading.Event(),ego_factory=lambda **kw:ego,stream_factory=FakeStream)
     assert result['status']=='failed'
     assert not ego.started and not ego.stopped
-    assert not (tmp_path/'data/sessions/test-session/raw/mocap/natnet.h5').exists()
+    assert not (tmp_path/'data/sessions/test-session/mocap.h5').exists()
 
 
 def test_disconnect_keeps_partial_data_and_stops_owned_ego(tmp_path):
@@ -111,9 +111,109 @@ def test_capture_uses_project_data_directory(tmp_path):
     result=run_session(config(tmp_path),threading.Event(),ego_factory=FakeEgo,stream_factory=FakeStream)
     assert result['status']=='complete'
     assert result['capture_config']['export_timeout_s']==3600
-    assert result['mocap']['file']=='raw/mocap/natnet.h5'
-    assert result['ego']['local_directory']=='raw/ego'
+    assert result['mocap']['file']=='mocap.h5'
+    assert result['ego']['local_directory']=='.'
     base=tmp_path/'data/sessions/test-session'
     for asset in result['assets'].values():
         assert (base/asset['path']).is_file()
     assert not (tmp_path/'ego_data').exists()
+
+class FakeTake:
+    def __init__(self, *args, **kwargs):self.events=[];self.attempted=False;self.stopped=False
+    def prepare(self, stream):self.stream=stream;return {'session_directory':'D:\\captures\\test-session'}
+    def start(self):self.attempted=True;return {'confirmed':True}
+    def check(self):pass
+    def stop(self):self.stopped=True;return {'confirmed':True}
+    def verify(self):return {'path':'D:\\captures\\test-session\\test-session.tak','size':123,'sha256':'a'*64}
+
+
+def test_take_mode_does_not_write_mocap_h5(tmp_path):
+    take=FakeTake()
+    result=run_session(config(tmp_path,mode='take',windows_take_root='D:\\captures'),
+        threading.Event(),ego_factory=FakeEgo,stream_factory=FakeStream,take_factory=lambda **kw:take)
+    assert result['status']=='complete'
+    assert result['capture_mode']=='take'
+    assert take.stopped
+    assert 'file' not in result['mocap'] and 'mocap_h5' not in result['assets']
+    assert result['remote_assets']['motive_take']['size']==123
+    assert not list((tmp_path/'data/sessions').rglob('natnet.h5'))
+
+
+def test_take_start_failure_still_attempts_stop(tmp_path):
+    class BrokenTake(FakeTake):
+        def start(self):self.attempted=True;raise TimeoutError('ack lost')
+    take=BrokenTake();ego=FakeEgo()
+    result=run_session(config(tmp_path,mode='take',windows_take_root='D:\\captures'),
+        threading.Event(),ego_factory=lambda **kw:ego,stream_factory=FakeStream,take_factory=lambda **kw:take)
+    assert result['status']=='failed' and take.stopped
+    assert not ego.started
+
+
+def test_take_mode_uses_default_windows_root(tmp_path):
+    received={}
+    def factory(**kwargs):received.update(kwargs);return FakeTake()
+    result=run_session(config(tmp_path,mode='take'),threading.Event(),
+        ego_factory=FakeEgo,stream_factory=FakeStream,take_factory=factory)
+    assert result['status']=='complete'
+    assert received['take_root']=='~/Desktop/syz/ego-hand/remote'
+    assert result['capture_config']['windows_take_root']=='~/Desktop/syz/ego-hand/remote'
+
+
+def test_cli_two_modes_only():
+    assert parser().parse_args([]).mode=='take'
+    args=parser().parse_args(['--mode','take','--windows-take-root','D:\\captures'])
+    assert args.mode=='take'
+    with pytest.raises(SystemExit):parser().parse_args(['--mode','both'])
+
+@pytest.mark.parametrize('failure',['stop','verify'])
+def test_take_failure_preserves_ego_and_reports_failed(tmp_path,failure):
+    take=FakeTake()
+    def broken():raise RuntimeError('injected '+failure)
+    setattr(take,failure,broken)
+    result=run_session(config(tmp_path,mode='take',windows_take_root='D:\\captures'),
+        threading.Event(),ego_factory=FakeEgo,stream_factory=FakeStream,take_factory=lambda **kw:take)
+    assert result['status']=='failed'
+    assert 'ego_h5' in result['assets']
+    assert any(failure in error['error'] for error in result['errors'])
+
+
+def test_h5_mode_never_controls_motive_recording(tmp_path):
+    def unexpected(**kwargs):raise AssertionError('Take controller used in H5 mode')
+    result=run_session(config(tmp_path),threading.Event(),ego_factory=FakeEgo,
+        stream_factory=FakeStream,take_factory=unexpected)
+    assert result['status']=='complete'
+    assert result['capture_mode']=='h5'
+    assert 'remote_assets' not in result
+
+
+def test_cancellation_after_take_start_does_not_start_ego(tmp_path):
+    stop=threading.Event();ego=FakeEgo()
+    class CancellingTake(FakeTake):
+        def start(self):
+            result=super().start();stop.set();return result
+    take=CancellingTake()
+    result=run_session(config(tmp_path,mode='take',windows_take_root='D:\\captures'),
+        stop,ego_factory=lambda **kw:ego,stream_factory=FakeStream,take_factory=lambda **kw:take)
+    assert not ego.started
+    assert take.stopped and result['status']=='failed'
+
+
+def test_flat_capture_places_ego_and_mocap_at_session_root(tmp_path):
+    result=run_session(config(tmp_path),threading.Event(),ego_factory=FakeEgo,stream_factory=FakeStream)
+    base=tmp_path/'data/sessions/test-session'
+    assert result['status']=='complete'
+    assert (base/'ego.h5').is_file() and (base/'mocap.h5').is_file()
+    assert not (base/'raw').exists() and not (base/'runs').exists()
+    assert result['assets']['ego_h5']['path']=='ego.h5'
+    assert result['assets']['mocap_h5']['path']=='mocap.h5'
+
+
+def test_h5_default_session_is_named_calibration_and_printed(tmp_path, capsys):
+    result=run_session(config(tmp_path,session_id=None),threading.Event(),
+        ego_factory=FakeEgo,stream_factory=FakeStream)
+    assert result['session_id'].startswith('calibration_')
+    assert result['capture_purpose']=='ego_extrinsic_calibration'
+    folder=tmp_path/'data/sessions'/result['session_id']
+    assert (folder/'ego.h5').is_file()
+    assert (folder/'mocap.h5').is_file()
+    assert str(folder.resolve()) in capsys.readouterr().out

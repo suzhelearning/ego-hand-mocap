@@ -1,0 +1,121 @@
+{
+  "source_run": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2",
+  "source_run_sha256": "b9c5a7518128f4eb1f34c1925383d328d2b03309a4a549b255a2c9789b8a9468",
+  "source_files": {
+    "ego_hand_benchmark/experiments.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/ego_hand_benchmark/experiments.py",
+      "sha256": "11a89d39cb6e0fabaf3d1235b0983e4070492b6ba1ff77599b840c11ea624a3a"
+    },
+    "ego_hand_benchmark/evaluation/joint_mapping.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/evaluation/joint_mapping.py",
+      "sha256": "185ae744bf928c9157ee13d7353e2fb2ac1cfd2132bc519a6df60b919e3fbdb8"
+    },
+    "ego_hand_benchmark/core/io.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/ego_hand_benchmark/core/io.py",
+      "sha256": "94c90eff8424a9524791b6bd27fe599b52721181c69e1d10e9b74410f4bd03c2"
+    },
+    "ego_hand_benchmark/core/schema.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/ego_hand_benchmark/core/schema.py",
+      "sha256": "def9e46370c703efa99559ed7c8c2dd5df0f4aac878170cb996f49f75c80f525"
+    },
+    "ego_hand_benchmark/core/skeleton.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/ego_hand_benchmark/core/skeleton.py",
+      "sha256": "754b142d09a268870ecf066c2594d15b6943e1fc6e7fc8e302161fef13e58a40"
+    },
+    "ego_hand_benchmark/geometry/fisheye.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/ego_hand_benchmark/geometry/fisheye.py",
+      "sha256": "f4b8949021437cfa4b1477102d4e07716121b5bf842a6878c9a90c759671cc79"
+    },
+    "ego_hand_benchmark/geometry/hot3d_camera.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/ego_hand_benchmark/geometry/hot3d_camera.py",
+      "sha256": "fbd0efd88ccba267caa8854ca9fd4cae8b257363b388f30e6e93370f6579d09b"
+    },
+    "ego_hand_benchmark/geometry/coordinate_transform.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/ego_hand_benchmark/geometry/coordinate_transform.py",
+      "sha256": "c1c01d6f39237d444410ec6cc8d90bfd56a0e604b908f75e741a1edf1eef6617"
+    },
+    "ego_hand_benchmark/geometry/virtual_camera.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/ego_hand_benchmark/geometry/virtual_camera.py",
+      "sha256": "c31d48ceeaa91ad2a6847c65a19c1d87f2a5e45de140698a9f600d7b8e9ffa28"
+    },
+    "ego_hand_benchmark/models/base.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/ego_hand_benchmark/models/base.py",
+      "sha256": "f4be94d891650d7157f29c27b8d994c2ff254c9791b53d2e85b8a4e5b516c507"
+    },
+    "ego_hand_benchmark/models/worker_utils.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/ego_hand_benchmark/models/worker_utils.py",
+      "sha256": "a6d2d1cd752b3de253148a559c5e74582a5a461b6d8f18e276f1ef23bbee75f8"
+    },
+    "ego_hand_benchmark/models/anyhand_adapter.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/ego_hand_benchmark/models/anyhand_adapter.py",
+      "sha256": "24bc199187bb3c3cb281ba6e230264986594b5f708a1def418bded8658d25b18"
+    },
+    "ego_hand_benchmark/models/wilor_calibrated.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/ego_hand_benchmark/models/wilor_calibrated.py",
+      "sha256": "6936aee9bd61930dcad00d95a8ecded242c2a19ae0ff56a9d096d700d27dda63"
+    },
+    "ego_hand_benchmark/models/hot3d_monocular.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/ego_hand_benchmark/models/hot3d_monocular.py",
+      "sha256": "080ecb2ba176f31b7b4ee8f9655c15b8695edbf736d73abd1da7ef786a724688"
+    },
+    "handpose_pipeline/pipelines/sch_v2_hand/__init__.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/handpose_pipeline/pipelines/sch_v2_hand/__init__.py",
+      "sha256": "fdf8c486f50def8ef405c3cac6a74610f37f07dde3e319a7fe015f8589176fe9"
+    },
+    "handpose_pipeline/pipelines/sch_v2_hand/cameras.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/handpose_pipeline/pipelines/sch_v2_hand/cameras.py",
+      "sha256": "2443201203c5caec4da16b9bb8081a833c3ed6fe2e8bec606ed4e48b9a22dfa0"
+    },
+    "handpose_pipeline/pipelines/sch_v2_hand/priors.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/handpose_pipeline/pipelines/sch_v2_hand/priors.py",
+      "sha256": "f0240c4c53ceb7630e3355745c75ef09fc95c14c13fb61bbc7c0163261288f1e"
+    },
+    "handpose_pipeline/pipelines/sch_v2_hand/optimizer.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/handpose_pipeline/pipelines/sch_v2_hand/optimizer.py",
+      "sha256": "55e69b66dafa854d331109749a7a155e993f879bbb19c3dc1176f74ebe9f2ca8"
+    },
+    "handpose_pipeline/pipelines/sch_v2_hand/temporal.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/handpose_pipeline/pipelines/sch_v2_hand/temporal.py",
+      "sha256": "f69a76690591ee091c67313c6b507013eaa6b7f2238889b5079ae2121da7defc"
+    },
+    "handpose_pipeline/pipelines/sch_v2_hand/pipeline.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/handpose_pipeline/pipelines/sch_v2_hand/pipeline.py",
+      "sha256": "f3905c92cb1457de752b6386075adc67e1216fd5b3cdd2c1cddc7c94c86cd19f"
+    },
+    "handpose_pipeline/pipelines/sch_v2_hand/sync.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/handpose_pipeline/pipelines/sch_v2_hand/sync.py",
+      "sha256": "bbbe03ccbef7cf1e70178a9fc2edb9f0e56e5aa010c8188c5d2063e2aedb0c48"
+    },
+    "handpose_pipeline/pipelines/sch_v2_hand/mano.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/handpose_pipeline/pipelines/sch_v2_hand/mano.py",
+      "sha256": "968d687db4e30fdc4ab254b059b65f1557e4716132920c863541bf5710465d1b"
+    },
+    "handpose_pipeline/pipelines/sch_v2_hand/association.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/handpose_pipeline/pipelines/sch_v2_hand/association.py",
+      "sha256": "350de6971fea842acd8a82c83fa788411fe14145dc3d7f60fd0025a1e5734337"
+    },
+    "handpose_pipeline/pipelines/sch_v2_hand/observations.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/handpose_pipeline/pipelines/sch_v2_hand/observations.py",
+      "sha256": "3ea19c239bf98f5f11e1adc3b0b5ea885e2e4c3007f2850c00c38b89eff50130"
+    },
+    "handpose_pipeline/pipelines/sch_v2_hand/geometry.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/handpose_pipeline/pipelines/sch_v2_hand/geometry.py",
+      "sha256": "dd3834a81bdf5f4c8aeee33506e4aba8e030ea372f9208b45a86645805917b92"
+    },
+    "handpose_pipeline/pipelines/sch_v2_hand/visualize.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/handpose_pipeline/pipelines/sch_v2_hand/visualize.py",
+      "sha256": "e98bff2ac2b80d23158bb0fc20f294332c68a16ca0a665c60c5eb24a85aa69ce"
+    },
+    "handpose_pipeline/pipelines/sch_v2_hand/video.py": {
+      "source": "/home/sch/sch/projects/ego_handpose/ego_hand_benchmark/results/shirt_hanger_take16_sch_v21_autocal_20261029_v2/provenance/code/handpose_pipeline/pipelines/sch_v2_hand/video.py",
+      "sha256": "f603546278d5ab78700d0d3628deed500992792e43c9d7479203e098c061c65c"
+    }
+  },
+  "deployment_changes": [
+    "minimal inference runner",
+    "atomic JSON helper import redirected",
+    "git provenance replaced by hashed source exports"
+  ],
+  "pipeline": "sch-v2.1-hand",
+  "stage": "mano_temporal"
+}

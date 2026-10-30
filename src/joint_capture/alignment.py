@@ -65,6 +65,8 @@ def align(session,output):
         models[kind]=fit_clock(rows[1:],int(rows[0]['remote_frequency_hz']))
     ep=resolve_session_asset(project_root,d,'ego_h5');mp=resolve_session_asset(project_root,d,'mocap_h5');sources.extend([ep,mp])
     with h5py.File(mp) as f:
+        if 'frames/natnet_timing/stamp_camera_mid_exposure' not in f:
+            raise ValueError('该mocap.h5没有NatNet曝光时钟；C3D/Take需先补齐时间锚点，不能按首帧猜测对齐')
         if str(f.attrs['pc_boot_id'])!=d['pc_boot_id']:raise ValueError('PC boot_id不一致')
         freq=int(f.attrs['tick_frequency_hz'])
         if freq!=models['windows']['frequency_hz']:raise ValueError('Windows频率不一致')
@@ -103,45 +105,56 @@ def align(session,output):
     return summary
 
 
+def align_to_h5(session, version):
+    """Compute with temporary scratch files, publish only a version inside aligned.h5."""
+    import tempfile
+    from .h5store import write_version
+    session=Path(session).resolve()
+    with tempfile.TemporaryDirectory(prefix='ego-alignment-') as temporary:
+        output=Path(temporary)/'sync'
+        summary=align(session,output)
+        def write(group):
+            for name in ('clock_models','summary'):
+                group.create_dataset(name+'_json',data=(output/(name+'.json')).read_text(),dtype=h5py.string_dtype())
+            cameras=group.create_group('cameras')
+            for camera in summary['cameras']:
+                with (output/(camera+'_nearest.csv')).open() as stream:rows=list(csv.DictReader(stream))
+                if not rows:raise ValueError('配对表为空')
+                target=cameras.create_group(camera)
+                for key in rows[0]:
+                    values=[row[key] for row in rows]
+                    data=np.array([x=='True' for x in values],dtype=bool) if values[0] in ('True','False') else np.array(values,dtype=np.int64)
+                    target.create_dataset(key,data=data,compression='gzip')
+            group['pairs']=cameras
+            group.attrs['physical_exposure_alignment_valid']=False
+            group.attrs['interpolated']=False
+            # Root aliases expose the most recently published sync result, versions remain immutable.
+            for key,value in [('pairs',cameras),('clocks',group['clock_models_json'])]:
+                if key in group.file:del group.file[key]
+                group.file[key]=value
+            group.file.attrs['active_sync_version']=version
+        write_version(session/'aligned.h5','sync',version,write,
+                      metadata={'pipeline':'causal_affine_nearest_v1','summary':summary})
+    return session/'aligned.h5'
+
+
 def main():
-    p=argparse.ArgumentParser(description='离线时钟映射及RGB到动捕最近邻配对，不插值')
+    p=argparse.ArgumentParser(description='离线时钟映射及最近邻配对，默认写入会话aligned.h5内部版本')
     p.add_argument('session',help='会话ID或会话目录')
-    p.add_argument('--output',type=Path,help='兼容用：直接指定输出目录')
-    p.add_argument('--run-id',help='写入本次离线运行目录；省略时自动生成')
+    p.add_argument('--output',type=Path,help='兼容旧工具：显式导出CSV目录')
+    p.add_argument('--version','--run-id',dest='version',help='H5内处理版本；省略自动生成')
     a=p.parse_args()
     from datetime import datetime
     import uuid
     from .paths import ProjectPaths
-    from .runs import create_run, finish_stage
     candidate=Path(a.session)
     if candidate.is_dir():session=candidate.resolve()
     else:
-        root=Path(__file__).resolve().parents[2]
-        paths=ProjectPaths(root)
+        root=Path(__file__).resolve().parents[2];paths=ProjectPaths(root)
         session=paths.session(a.session) if paths.session(a.session).is_dir() else root/'capture_sessions'/a.session
     if a.output:
-        print(json.dumps(align(session,a.output),ensure_ascii=False,indent=2))
-        return
-    manifest=load_session_manifest(session/'session.json')
-    if session.parent.name!='sessions':
-        raise SystemExit('旧布局会话请显式传入 --output；新会话输出需写入 data/sessions/<id>/runs/')
-    root=session.parents[2];paths=ProjectPaths(root)
-    run_id=a.run_id or datetime.now().strftime('%Y%m%dT%H%M%S')+'_'+uuid.uuid4().hex[:6]
-    run_dir=create_run(paths,manifest['session_id'],run_id,['clock_alignment'],config={
-        'pipeline':'causal_affine_nearest_v1','clock_reference':'Ubuntu CLOCK_MONOTONIC',
-        'rgb_reference':'EGO CIF FS','mocap_reference':'Motive camera mid-exposure',
-        'interpolation':False,'run_id_source':'command_line' if a.run_id else 'generated',
-    })
-    try:
-        result=align(session,run_dir/'sync')
-        outputs=[]
-        for path in sorted((run_dir/'sync').iterdir()):
-            if path.is_file():
-                outputs.append({'path':'sync/'+path.name,'sha256':digest(path),'size':path.stat().st_size})
-        finish_stage(run_dir,'clock_alignment','complete',outputs=outputs)
-        print(json.dumps(result,ensure_ascii=False,indent=2))
-    except Exception as exc:
-        finish_stage(run_dir,'clock_alignment','failed',error={'type':type(exc).__name__,'message':str(exc)})
-        raise
+        print(json.dumps(align(session,a.output),ensure_ascii=False,indent=2));return
+    version=a.version or datetime.now().strftime('%Y%m%dT%H%M%S')+'_'+uuid.uuid4().hex[:6]
+    print(align_to_h5(session,version))
 
 if __name__=='__main__':main()

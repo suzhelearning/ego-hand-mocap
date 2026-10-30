@@ -1,0 +1,28 @@
+{
+  "commit": "50847f9db9294351478521700e35ca8ff798b5f8",
+  "files": {
+    "wilor/models/__init__.py": "adfb0cfe1bb870afb973f55ffed2dcf6750aeaf14e5dd69146f8c1c0a8997921",
+    "wilor/models/mano_wrapper.py": "dbe78558c3ccaa6deaba7731858565dcdd193fb0ee7b6543c059a07f0408239a",
+    "wilor/models/discriminator.py": "c72ed76c595d5c8350784093dc3332aaeff89a5821de0d218f7c344f9912d4c9",
+    "wilor/models/wilor.py": "9744194093a8307d2fba26c4a85edd39d99e1a556f3867372b62d29bce514fdc",
+    "wilor/models/losses.py": "53052f7589ead73531202548f452d294a3ae0a15d279a55a8508239ec282c311",
+    "wilor/models/heads/__init__.py": "788c3df4b0f0eecec99a4e94149f05cc00e03261564080c2be4952cfbf12ab62",
+    "wilor/models/heads/refinement_net.py": "5878350b52af6c4cd27541ee02579ea7fe30549ef8e101a72fe2cf6a82eef59d",
+    "wilor/models/backbones/__init__.py": "f4e16992c4890acb10ce5c5f8646e7e2419d28582085efd3558e96ffa1a2c487",
+    "wilor/models/backbones/vit.py": "5424ff143d2a8db9f0a722da34857bff2559c4867d9295fb3648e0293f5de013",
+    "wilor/utils/__init__.py": "a668095eb88cbd5c2b9015d7bf4ae51c12a899e738609c248af9c687791d563d",
+    "wilor/utils/pylogger.py": "c8a816419a6b61389321f971427e1b88f7fda0345ae49f579318abdcb8349296",
+    "wilor/utils/rich_utils.py": "4634c280ef2f3f4e52ad20e319d89e4ba45cd1137fc6ba47e122898e932f4d00",
+    "wilor/utils/pose_utils.py": "5bc11827ca90d8757eb273ca72ec2d430ccd8cd24c6695da1c98853b5cc3b818",
+    "wilor/utils/render_openpose.py": "420563f3d6869a2ce25257176ecb73d58c8409ce37b2ef2f3631893eabe7cdd4",
+    "wilor/utils/misc.py": "5e1bc5edea3a9792e315189a9e5761cd9c87ba03e269d12585ffe8662a9beaba",
+    "wilor/utils/mesh_renderer.py": "9825b4c4c50ed1020b4cab3db2135e0f88a8eb5616a5ab0bd84a44049d749253",
+    "wilor/utils/renderer.py": "148a78219241740821d8f0516fd391b1eac09d44237d12a4f28bbcb91f2c8019",
+    "wilor/utils/geometry.py": "9eb08e438622a36f3bc40d3fd48b776022b80ee26406f0d826d7b7132821e778",
+    "wilor/utils/skeleton_renderer.py": "a8818691fb88bf46cc5f3ac9fcc85cdf6c3ed54322882557ed5c5cb7b4c08557",
+    "wilor/datasets/vitdet_dataset.py": "e525c2dde01c90180eafab4fcfad6bc1bcc94b64597385f1776fc460e4af40f3",
+    "wilor/datasets/utils.py": "24229bd14758b5f73a3531ceb73f4c93f3955278df21800f5a34115221e534fd",
+    "wilor/configs/__init__.py": "2570cce9c9bf45b46fbe53b94b57655638d90fe6a3183854a766cf128eedb3ba",
+    "license.txt": "0bb835f5ed7272947a23d92d0e74bbdadcbf0beb9235c0735c32d1310a4bceda"
+  }
+}

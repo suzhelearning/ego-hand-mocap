@@ -15,3 +15,8 @@ test('positive offset delays MOCAP and timeline includes both extents', () => {
   assert.deepEqual(timelineRange(null, data, -1), [-1, -.8]);
   assert.deepEqual(timelineRange(null, null, 0), [0, 0]);
 });
+test('world-converted RGB subset retains its position on the paired timeline', () => {
+  const subset = {frames: [{time_s: .1}, {time_s: .2}]};
+  assert.deepEqual(timelineRange(subset, null, 0), [.1, .2]);
+  assert.equal(nearestFrame(subset, .05), -1);
+});

@@ -1,0 +1,171 @@
+{
+  "status": "candidate_translation_inconsistent",
+  "recommended_for_precision_use": false,
+  "direction": "p_B = R_BC @ p_C + t_BC_m",
+  "from_frame": "cam0_optical",
+  "to_frame": "ego",
+  "rigid_body_id": 10,
+  "position_unit": "m",
+  "R_BC": [
+    [
+      0.2619836228289888,
+      -0.5292562513863184,
+      0.8070021076415478
+    ],
+    [
+      -0.9632302677659534,
+      -0.19504131441471415,
+      0.1847872748078459
+    ],
+    [
+      0.05959893144115813,
+      -0.8257400959381123,
+      -0.5608932708913429
+    ]
+  ],
+  "t_BC_m": [
+    -0.07012503009708052,
+    0.08563196563115533,
+    0.025215806288269117
+  ],
+  "T_BC": [
+    [
+      0.2619836228289888,
+      -0.5292562513863184,
+      0.8070021076415478,
+      -0.07012503009708052
+    ],
+    [
+      -0.9632302677659534,
+      -0.19504131441471415,
+      0.1847872748078459,
+      0.08563196563115533
+    ],
+    [
+      0.05959893144115813,
+      -0.8257400959381123,
+      -0.5608932708913429,
+      0.025215806288269117
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "T_CB": [
+    [
+      0.26198362282898885,
+      -0.9632302677659533,
+      0.0595989314411581,
+      0.09935207550983961
+    ],
+    [
+      -0.5292562513863185,
+      -0.19504131441471415,
+      -0.8257400959381122,
+      0.00040936287871476304
+    ],
+    [
+      0.8070021076415479,
+      0.1847872748078459,
+      -0.5608932708913429,
+      0.0549107255885404
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "source_sessions": [
+    "calibration_rbc_20261030_172946_e1d1a1",
+    "calibration_tbc_20261030_173402_2cac23"
+  ],
+  "validation": {
+    "rbc_poses": 18,
+    "tbc_poses": 31,
+    "rbc_train_deg": {
+      "rms": 1.5879324409569804,
+      "median": 1.2970637966635497,
+      "p95": 2.668782878890564,
+      "max": 3.543524656175319
+    },
+    "rbc_heldout_deg": {
+      "rms": 2.0698930662370576,
+      "median": 1.5852086107884742,
+      "p95": 3.2009252080980946,
+      "max": 3.206886539734245
+    },
+    "tbc_rotation_train_deg": {
+      "rms": 1.624344383805065,
+      "median": 1.3424906126880811,
+      "p95": 2.7621318803163897,
+      "max": 3.1772385136939576
+    },
+    "tbc_rotation_heldout_deg": {
+      "rms": 1.6431639472065682,
+      "median": 1.2456452501769086,
+      "p95": 2.7037193456053212,
+      "max": 3.0828278037703845
+    },
+    "tbc_position_train_m": {
+      "rms": 0.04104036905303162,
+      "median": 0.034295948455157224,
+      "p95": 0.06838714693344958,
+      "max": 0.07111849458660137
+    },
+    "tbc_position_heldout_m": {
+      "rms": 0.04503999336884982,
+      "median": 0.03574092061993122,
+      "p95": 0.07614610700121363,
+      "max": 0.07985259208500262
+    },
+    "rbc_cross_position_heldout_m": {
+      "rms": 0.019940985114632048,
+      "median": 0.019563975600810152,
+      "p95": 0.025934880035434156,
+      "max": 0.027295711987520916
+    },
+    "tbc_independent_rotation_difference_deg": 2.624693137992022,
+    "tbc_independent_t_m": [
+      -0.07016582623765308,
+      0.08714121318725399,
+      0.02008462678959839
+    ]
+  },
+  "physical_exposure_alignment_valid": false,
+  "quality_notes": [
+    "tBC heldout position RMS 45.04 mm; metric translation is not reliably validated",
+    "Independent RBC/tBC rotation estimates differ by 2.62 degrees",
+    "Scale diagnostic 1.4619 improves heldout position RMS to 16.51 mm; diagnostic rescaling was NOT applied",
+    "Existing default config retained; its previous candidate status does not imply it is ground truth"
+  ],
+  "assumptions": [
+    "Camera-marker assembly unchanged between sessions",
+    "Camera-IMU profile and inherited -22.2ms IMU offset correct",
+    "Metric SLAM scale correct"
+  ],
+  "schema": "ego-camera-rigid-extrinsics-v1",
+  "R_CB": [
+    [
+      0.2619836228289888,
+      -0.9632302677659534,
+      0.05959893144115813
+    ],
+    [
+      -0.5292562513863184,
+      -0.19504131441471415,
+      -0.8257400959381123
+    ],
+    [
+      0.8070021076415478,
+      0.1847872748078459,
+      -0.5608932708913429
+    ]
+  ],
+  "translation_estimated": true,
+  "source_report": "results/okvis_pose/calibration_pair_20261030/extrinsic_calibration.json"
+}

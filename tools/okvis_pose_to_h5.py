@@ -59,6 +59,25 @@ def export(run,output):
     return output
 
 
+def append_to_ego(run, session, version):
+    import tempfile
+    from joint_capture.h5store import write_version, file_sha256
+    target=Path(session)/'ego.h5'
+    if not target.is_file():raise FileNotFoundError(target)
+    with tempfile.TemporaryDirectory(prefix='okvis-import-') as scratch:
+        source=export(run,Path(scratch)/'pose.h5')
+        def writer(group):
+            with h5py.File(source) as f:
+                for key,value in f.attrs.items():group.attrs[key]=value
+                for key in f:f.copy(key,group)
+        write_version(target,'okvis',version,writer,
+                      metadata={'source_run':str(Path(run).resolve()),'pose_sha256':file_sha256(source)},
+                      require_existing=True)
+    return target
+
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('run',type=Path);p.add_argument('output',type=Path)
-    a=p.parse_args();print(export(a.run,a.output))
+    p=argparse.ArgumentParser();p.add_argument('run',type=Path);p.add_argument('output',type=Path,help='session目录；使用--legacy-output时为独立H5路径');p.add_argument('--version');p.add_argument('--legacy-output',action='store_true')
+    a=p.parse_args()
+    if not a.legacy_output and not a.version:p.error('需要 --version 指定 ego.h5 内部版本')
+    print(export(a.run,a.output) if a.legacy_output else append_to_ego(a.run,a.output,a.version))

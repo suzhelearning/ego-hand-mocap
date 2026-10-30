@@ -1,0 +1,10 @@
+{
+  "left_video": "inputs/left.mp4",
+  "right_video": "inputs/right.mp4",
+  "calibration": "inputs/calibration.json",
+  "timestamps_left": "inputs/timestamps_left.csv",
+  "timestamps_right": "inputs/timestamps_right.csv",
+  "timestamp_clock": "REPLACE_WITH_COMMON_CLOCK",
+  "sync_source": "REPLACE_WITH_REAL_ACQUISITION_SYNC_SOURCE",
+  "max_skew_ms": 5.0
+}

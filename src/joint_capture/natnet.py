@@ -26,6 +26,7 @@ class NatNetStream:
         self.server_ip=server_ip;self.client_ip=client_ip;self.timeout=timeout
         self.ready=threading.Event();self.recording=threading.Event()
         self.frames=queue.Queue(maxsize=4096);self.error=None;self.last_received=0
+        self.motive_recording=None;self.motive_status_ns=0
         self.names={};self.client=None;self.frequency=None;self.server_packet=None
 
     def start(self):
@@ -57,6 +58,8 @@ class NatNetStream:
         now=time.monotonic_ns()
         try:
             frame=convert_frame(data,now);self.last_received=now
+            self.motive_recording=data.get('is_recording')
+            self.motive_status_ns=now
             if frame['rigid_bodies']:self.ready.set()
             if self.recording.is_set():self.frames.put_nowait(frame)
         except Exception as e:
@@ -66,6 +69,14 @@ class NatNetStream:
         if self.error:raise RuntimeError('NatNet采集失败: '+self.error)
         if self.last_received and time.monotonic_ns()-self.last_received>3_000_000_000:
             raise RuntimeError('NatNet数据流中断超过3秒')
+
+    def wait_motive_recording(self, expected, since_ns, timeout):
+        deadline=time.monotonic()+timeout
+        while time.monotonic()<deadline:
+            self.check()
+            if self.motive_status_ns>since_ns and self.motive_recording is expected:return
+            time.sleep(.02)
+        raise TimeoutError('Motive录制状态未确认: '+str(expected))
 
     def drain(self):
         result=[]

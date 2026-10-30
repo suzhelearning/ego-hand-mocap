@@ -13,7 +13,7 @@ export function nearestFrame(data, time, offset = 0) {
 }
 export function timelineRange(ego, mocap, offset) {
   const ranges = [];
-  if (ego) ranges.push([0, ego.frames.at(-1).time_s]);
-  if (mocap) ranges.push([offset, offset + mocap.frames.at(-1).time_s]);
+  if (ego) ranges.push([ego.frames[0].time_s, ego.frames.at(-1).time_s]);
+  if (mocap) ranges.push([offset + mocap.frames[0].time_s, offset + mocap.frames.at(-1).time_s]);
   return ranges.length ? [Math.min(...ranges.map(r => r[0])), Math.max(...ranges.map(r => r[1]))] : [0, 0];
 }

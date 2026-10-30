@@ -19,3 +19,23 @@ def test_clock_fit_preserves_causal_bounds():
 def test_incompatible_probes_rejected():
     rows=[dict(pc_send_ns=10000*i,pc_receive_ns=10000*i+1,remote_receive_ticks=1,remote_send_ticks=1) for i in range(4)]
     with pytest.raises(ValueError):fit_clock(rows,1000000000)
+
+
+def test_h5_sync_publication_without_run_directory(tmp_path,monkeypatch):
+    import json,h5py
+    import joint_capture.alignment as module
+    base=tmp_path/'data/sessions/example';base.mkdir(parents=True)
+    (base/'session.json').write_text(json.dumps({'session_id':'example','assets':{}}))
+    def fixture(session,output):
+        output.mkdir()
+        (output/'clock_models.json').write_text('{"ego":{},"windows":{}}')
+        (output/'summary.json').write_text('{"cameras":{"RGB_left":{}},"physical_exposure_alignment_valid":false}')
+        (output/'RGB_left_nearest.csv').write_text('rgb_index,rgb_pc_ns,delta_ns,within_mocap_coverage\n0,100,2,True\n')
+        return {'cameras':{'RGB_left':{}}}
+    monkeypatch.setattr(module,'align',fixture)
+    path=module.align_to_h5(base,'v001')
+    assert path==base/'aligned.h5'
+    assert not (base/'runs').exists()
+    with h5py.File(path) as f:
+        assert f['processing/sync/v001/cameras/RGB_left/delta_ns'][:].tolist()==[2]
+        assert f['processing/sync/v001'].attrs['complete']

@@ -788,6 +788,7 @@ packages:
   - eclipse-zenoh>=1.9,<1.10
   - h5py>=3.10,<4
   - pytest>=8,<10 ; extra == 'test'
+  - ezc3d>=1.5,<2 ; extra == 'c3d'
   - h5py>=3.10,<4 ; extra == 'motion'
   requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/58/1b/2a074d4f4595bd37c3d12f1b2ad49bceef5c8cd0962cbfd97d1d39f32e1f/eclipse_zenoh-1.9.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl

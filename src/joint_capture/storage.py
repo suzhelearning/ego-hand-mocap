@@ -35,6 +35,9 @@ class RigidH5Writer:
         self.file['frames/natnet_timing'].attrs['tick_frequency_hz'] = int(frequency)
         self.file['frames/publisher_received_time_ns'].attrs['meaning'] = 'PC callback after parsing, NOT exposure'
         self.file.require_group('rigid_bodies')
+        raw=self.file.require_group('raw')
+        raw['frames']=self.file['frames'];raw['rigid_bodies']=self.file['rigid_bodies']
+        self.file.attrs['layout_version']=2
 
     def _dataset(self, name, shape, dtype, fill=None):
         return self.file.create_dataset(name, shape=(self.count,*shape),

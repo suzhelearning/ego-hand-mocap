@@ -23,6 +23,15 @@ class ProjectPaths:
     def session(self, session_id: str) -> Path:
         return self.data / "sessions" / checked_id(session_id, "session-id")
 
+    def ego_h5(self, session_id: str) -> Path:
+        return self.session(session_id) / 'ego.h5'
+
+    def mocap_h5(self, session_id: str) -> Path:
+        return self.session(session_id) / 'mocap.h5'
+
+    def aligned_h5(self, session_id: str) -> Path:
+        return self.session(session_id) / 'aligned.h5'
+
     def raw_ego(self, session_id: str) -> Path:
         return self.session(session_id) / "raw" / "ego"
 
@@ -30,7 +39,7 @@ class ProjectPaths:
         return self.session(session_id) / "raw" / "mocap"
 
     def clock_probes(self, session_id: str) -> Path:
-        return self.session(session_id) / "raw" / "clocks"
+        return self.session(session_id) / "clocks"
 
     def capture_records(self, session_id: str) -> Path:
         return self.session(session_id) / "capture"

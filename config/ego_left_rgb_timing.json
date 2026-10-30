@@ -1,0 +1,111 @@
+{
+  "schema": "ego_camera_statistical_time_offset",
+  "schema_version": 2,
+  "camera": "RGB_left",
+  "camera_frame": "cam0_optical",
+  "status": "unvalidated_constant_offset_after_reanalysis",
+  "offset_ns": null,
+  "apply_stage": "after_clock_mapping",
+  "time_domain": "Ubuntu CLOCK_MONOTONIC",
+  "source_timestamp_dataset": "/sensor/camera/RGB_left/timestamp_ns",
+  "formula": "t_rgb_reference_pc_ns = ego_clock_map(t_ego_h5_ns) + validated_offset_ns",
+  "offset_meaning": "尚无通过验证的固定时间修正。offset_ns=null 表示未知，不表示0 ms；candidate_offset_ns仅供记录，不应自动应用。",
+  "reference": "相对动捕曝光中点的统计观测参考；未独立标定真实世界绝对 t0",
+  "physical_exposure_calibrated": false,
+  "provenance": {
+    "analysis_date": "2026-10-30",
+    "summary_path": "results/rgb_time_offset_reanalysis_20261030/summary.json",
+    "path_base": "repository_root",
+    "sessions": [
+      "calibration_rbc_20261030_172306_098e95",
+      "calibration_rbc_20261030_172946_e1d1a1",
+      "calibration_tbc_20261030_173402_2cac23"
+    ]
+  },
+  "limitations": [
+    "仅分析左 RGB，不能用于右 RGB 或 IMU。",
+    "不同初始化和录制不能稳定复现同一偏移，历史 +8 ms 不作为已验收配置。",
+    "自动曝光开启且缺少逐帧曝光；不能把统计偏移解释为已标定中心行曝光中点。",
+    "null不是零偏移；任何消费者必须拒绝在enabled=false或offset_ns=null时声称已完成时间修正。"
+  ],
+  "integration_status": "stored_only_not_loaded_by_alignment_pipeline",
+  "motion_reference_alignment": {
+    "target": "relative_motion_reference_pc_ns",
+    "target_meaning": "以动捕曝光中点为参考的公共时间轴观测时间；Ego修正尚未通过固定值验证，不能据此声称已对齐真实 t0。",
+    "required_order": [
+      "将各设备原始时间转换为纳秒",
+      "通过同次会话对时模型映射到 Ubuntu CLOCK_MONOTONIC",
+      "在映射后的时间上应用一次参考时刻修正",
+      "按修正后的时间进行最近邻配对"
+    ],
+    "ego_rgb_left": {
+      "nominal_rate_hz": 30,
+      "source_dataset": "/sensor/camera/RGB_left/timestamp_ns",
+      "source_clock": "Ego CLOCK_MONOTONIC",
+      "source_unit": "ns",
+      "correction_after_mapping_ns": null,
+      "to_motion_reference_formula": "t_rgb_reference_est_ns = ego_clock_map(t_ego_h5_ns) + validated_offset_ns",
+      "timestamp_for_motion_at_t0": "未验证；不能固定写成 t0 - 8 ms"
+    },
+    "mocap": {
+      "nominal_rate_hz": 120,
+      "source_dataset": "/frames/natnet_timing/stamp_camera_mid_exposure",
+      "source_clock": "Motive server high-resolution clock",
+      "source_unit": "ticks",
+      "frequency_attribute": "tick_frequency_hz",
+      "ticks_to_ns_formula": "t_mocap_ns = ticks * 1000000000 / tick_frequency_hz",
+      "correction_after_mapping_ns": 0,
+      "to_motion_reference_formula": "t_mocap_reference_pc_ns = windows_clock_map(t_mocap_ns)",
+      "timestamp_for_motion_at_t0": "采用曝光中点作为观测参考；与绝对真实 t0 的误差未经独立测定。",
+      "zero_correction_meaning": "采用曝光中点作为观测参考，无额外相位修正；不代表物理测量误差为零。"
+    },
+    "pairing": {
+      "method": "nearest_neighbor",
+      "interpolate_final_labels": false,
+      "formula": "仅在enabled=true且offset_ns有效时：j = argmin_j abs(windows_clock_map(t_mocap_ns[j]) - (ego_clock_map(t_ego_h5_ns[i]) + offset_ns))",
+      "residual_formula": "delta_ns = t_mocap_reference_pc_ns[j] - t_rgb_reference_pc_ns[i]",
+      "nominal_max_nearest_distance_ms": 4.166666666666667,
+      "bound_conditions": "仅当动捕稳定 120 Hz、无丢帧且目标时间被前后帧覆盖时成立；不含时钟、统计修正或曝光误差。"
+    },
+    "notes": [
+      "不得将网络接收时间或文件写入时间当作曝光参考。",
+      "任意真实时刻 t0 不一定恰好存在对应图像或动捕帧。",
+      "候选偏移不可作为有效修正；通过验证后只在时钟映射后加一次。"
+    ]
+  },
+  "enabled": false,
+  "candidate_offset_ns": 8000000,
+  "historical_candidate": {
+    "offset_ns": 8000000,
+    "statistics": {
+      "window_count": 15,
+      "window_iqr_ms": [
+        4.5,
+        10.5
+      ],
+      "window_range_ms": [
+        -3.0,
+        21.0
+      ]
+    },
+    "provenance": {
+      "analysis_date": "2026-10-30",
+      "summary_path": "results/rgb_time_offset_20261030/summary.json",
+      "path_base": "repository_root",
+      "sessions": [
+        "calibration_rbc_20261030_172306_098e95",
+        "calibration_rbc_20261030_172946_e1d1a1"
+      ],
+      "estimator": "15 个运动片段偏移的中位数；纯 RGB 旋转与动捕旋转比较"
+    },
+    "status": "not_promoted_after_reanalysis"
+  },
+  "validation": {
+    "status": "failed_reliable_constant_acceptance",
+    "relative_positive_offset_evidence": "partial",
+    "stable_across_initializations_and_recordings": false,
+    "absolute_t0_alignment_valid": false,
+    "precision_ns": null,
+    "details_path": "results/rgb_time_offset_reanalysis_20261030/summary.json"
+  }
+}

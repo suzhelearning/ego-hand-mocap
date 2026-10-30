@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {OrbitControls} from './vendor/OrbitControls.js';
 import {nearestFrame, timelineRange} from './timeline.mjs';
+import {createMeshGeometry} from './mesh.mjs';
 
 const $ = id => document.getElementById(id);
 const state = {ego: null, mocap: null, time: 0, range: [0, 0], playing: false};
@@ -23,6 +24,12 @@ function overview() {
   if (loaded.some(r => state[r].synthetic)) warnings.add('含模拟数据，仅用于界面调试，非真实精度评测。');
   if (state.ego && state.mocap && state.ego.coordinate_system !== state.mocap.coordinate_system)
     warnings.add('两路坐标系不同，当前原样叠加不可直接比较；请先离线变换到相同坐标系。');
+  if (state.ego && state.mocap) {
+    if (state.ego.session_id && state.mocap.session_id && state.ego.session_id !== state.mocap.session_id)
+      warnings.add('两路数据来自不同会话，不能作为同次动作进行评估。');
+    if (!state.ego.timeline_id || state.ego.timeline_id !== state.mocap.timeline_id || offset() !== 0)
+      warnings.add('两路未使用相同配对时间轴或存在人工偏移；世界坐标统一不代表时间同步。');
+  }
   notice([...warnings].join('\n'));
 }
 function stop() {state.playing = false; $('play').textContent = '播放';}
@@ -41,6 +48,7 @@ function recalculate() {
 function clearLayer(role) {
   if (!layers[role]) return;
   scene.remove(layers[role].group);
+  layers[role].mesh?.geometry.dispose();
   layers[role].material.dispose();
   delete layers[role];
 }
@@ -50,9 +58,16 @@ function setData(role, data, name) {
   const material = new THREE.MeshStandardMaterial({color: role === 'ego' ? 0x6cdece : 0xb29bff,
     roughness: .35, metalness: .12, transparent: role === 'mocap',
     opacity: role === 'ego' ? 1 : Number($('opacity').value), depthWrite: role === 'ego',
-    depthTest: role === 'ego'});
+    depthTest: role === 'ego', side: THREE.DoubleSide});
   const group = new THREE.Group();
-  const points = data.frames[0].points.map(() => {
+  let mesh = null;
+  if (data.kind === 'mesh') {
+    const geometry = createMeshGeometry(THREE, data);
+    mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    group.add(mesh);
+  }
+  const points = mesh ? [] : data.frames[0].points.map(() => {
     const mesh = new THREE.Mesh(sphere, material); group.add(mesh); return mesh;
   });
   const bones = data.bones.map(() => {
@@ -60,7 +75,7 @@ function setData(role, data, name) {
   });
   // Ground-truth overlay intentionally stays visible through the solid EGO layer.
   if (role === 'mocap') group.traverse(obj => {obj.renderOrder = 2;});
-  scene.add(group); layers[role] = {group, material, points, bones};
+  scene.add(group); layers[role] = {group, material, points, bones, mesh};
   $(role + '-info').textContent = `${name}\n${data.frames.length} 帧 · ${data.frames[0].points.length} 点 · ${data.frames.at(-1).time_s.toFixed(3)} s\n${data.coordinate_system} · ${data.kind} · m`;
   recalculate(); fitView();
 }
@@ -91,6 +106,13 @@ function updateLayer(role) {
   if (!frame) return `${role.toUpperCase()} 超出范围`;
   if (!frame.valid) return `${role.toUpperCase()} #${idx + 1} 无效帧`;
   if (Math.abs(delta) > tolerance) return `${role.toUpperCase()} 无邻近样本`;
+  if (layer.mesh && layer.lastFrame !== idx) {
+    const positions = layer.mesh.geometry.attributes.position;
+    frame.points.forEach((point, i) => positions.setXYZ(i, ...point));
+    positions.needsUpdate = true;
+    layer.mesh.geometry.computeVertexNormals();
+    layer.lastFrame = idx;
+  }
   for (let i = 0; i < layer.points.length; i++) {
     const p = frame.points[i], mesh = layer.points[i];
     mesh.visible = p !== null; if (p) mesh.position.set(...p);
@@ -113,7 +135,12 @@ async function fetchJSON(url, options) {
   if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
   return data;
 }
-const alignedCache = new Map();
+function assetQuery(file) {
+  const query = new URLSearchParams({path: file.path});
+  if (file.version) query.set('version', file.version);
+  if (file.stage) query.set('stage', file.stage);
+  return query.toString();
+}
 async function load(role, file) {
   const revision = ++revisions[role];
   try {
@@ -121,11 +148,20 @@ async function load(role, file) {
     if (!file && !path) throw new Error('请先选择文件。');
     if (file && file.size > 64 * 1024 * 1024) throw new Error('文件超过 64 MiB，请裁剪动作片段。');
     notice(`正在加载 ${role.toUpperCase()} …`);
+    const request = new URLSearchParams(file ? {name: file.name} : path);
+    request.set('target', $('target-frame').value);
+    if ($('alignment-version').value) {
+      const selected = JSON.parse($('alignment-version').value);
+      request.set('alignment_version', selected.version);
+      request.set('alignment_session', selected.session_id);
+    }
     const data = file
-      ? await fetchJSON('/api/upload?name=' + encodeURIComponent(file.name), {method: 'POST', body: file})
-      : alignedCache.get(path) || await fetchJSON('/api/load?path=' + encodeURIComponent(path));
+      ? await fetchJSON('/api/upload?' + request, {method: 'POST', body: file})
+      : await fetchJSON('/api/load?' + request);
     if (revision !== revisions[role]) return;
-    setData(role, data, file?.name || path);
+    const query = new URLSearchParams(path);
+    const label = [query.get('path'), query.get('stage'), query.get('version')].filter(Boolean).join(' · ');
+    setData(role, data, file?.name || label);
   } catch (error) {
     if (revision === revisions[role]) notice(`${role.toUpperCase()} 加载失败：${error.message}`, true);
   } finally {$(role + '-file').value = '';}
@@ -138,6 +174,42 @@ function step(direction) {
   const times = data.frames.map(f => f.time_s + shift);
   const target = direction > 0 ? times.find(t => t > state.time + 1e-9) : times.findLast(t => t < state.time - 1e-9);
   if (target !== undefined) state.time = target;
+}
+async function refreshCatalog() {
+  $('refresh').disabled = true;
+  try {
+    const {files, root} = await fetchJSON('/api/files');
+    $('data-root').textContent = root || 'data/';
+    const alignment = $('alignment-version'), oldAlignment = alignment.value;
+    alignment.replaceChildren(new Option('同会话唯一完成版本（自动）', ''));
+    for (const file of files.filter(f => f.asset_type === 'mocap_aligned_h5' && f.version))
+      alignment.append(new Option(file.session_id + ' · ' + file.version,
+        JSON.stringify({session_id: file.session_id, version: file.version})));
+    if ([...alignment.options].some(o => o.value === oldAlignment)) alignment.value = oldAlignment;
+    for (const role of ['ego', 'mocap']) {
+      const select = $(role + '-select'), previous = select.value;
+      select.replaceChildren(new Option(role === 'ego' ? '选择 EGO 视觉结果' : '选择 MOCAP 数据 / 处理版本', ''));
+      const kinds = role === 'ego' ? ['ego_hand_motion', 'ego_vision_h5']
+        : ['mocap_raw_h5', 'mocap_aligned_h5', 'mocap_mano_h5'];
+      const groups = new Map();
+      for (const file of files.filter(f => kinds.includes(f.asset_type))) {
+        const session = file.session_id || ('未分配 · ' + (file.record_id || '历史数据'));
+        if (!groups.has(session)) {
+          const group = document.createElement('optgroup'); group.label = session;
+          groups.set(session, group); select.append(group);
+        }
+        const label = {ego_vision_h5: 'EGO 视觉', ego_hand_motion: 'EGO 手部 JSON',
+          mocap_mano_h5: 'MANO 网格', mocap_aligned_h5: '时间对齐刚体', mocap_raw_h5: '原始 marker / 刚体'}[file.asset_type];
+        groups.get(session).append(new Option([label, file.version || file.run_id,
+          file.path.split('/').at(-1)].filter(Boolean).join(' · '), assetQuery(file)));
+      }
+      if ([...select.options].some(o => o.value === previous)) select.value = previous;
+      if (!state[role]) $(role + '-info').textContent = groups.size ? '已发现会话数据，请选择具体结果和版本。'
+        : role === 'ego' ? '尚无 EGO 视觉动作结果。原始 ego.h5 图像/IMU 不作为手部轨迹。' : '尚未发现动捕结果。';
+    }
+    if (!state.ego && !state.mocap) notice('数据目录已更新，请按会话选择文件和处理版本；不会自动选择或配对不同录制。');
+  } catch (error) {notice('无法读取数据目录：' + error.message, true);}
+  finally {$('refresh').disabled = false;}
 }
 async function init() {
   scene = new THREE.Scene();
@@ -202,38 +274,15 @@ async function init() {
     $('frame-info').textContent = ['ego', 'mocap'].map(updateLayer).join('\n');
     controls.update(); renderer.render(scene, camera);
   });
-  try {
-    const {files} = await fetchJSON('/api/files');
-    const egoHands = files.filter(f => f.asset_type === 'ego_hand_motion');
-    const mocapAssets = files.filter(f => ['mocap_aligned_h5', 'mocap_raw_h5'].includes(f.asset_type));
-    for (const file of egoHands) {
-      const option = document.createElement('option'); option.value = file.path;
-      option.textContent = file.session_id + ' · ' + file.run_id + ' · ' + file.path.split('/').at(-1);
-      $('ego-select').append(option);
+  for (const id of ['target-frame', 'alignment-version']) $(id).onchange = () => {
+    for (const role of ['ego', 'mocap']) {
+      ++revisions[role]; clearLayer(role); state[role] = null;
+      $(role + '-info').textContent = '转换设置已更改，请重新加载所选数据。';
     }
-    for (const file of mocapAssets) {
-      const option = document.createElement('option'); option.value = file.path;
-      const label = file.asset_type === 'mocap_aligned_h5' ? '已对齐' : '原始刚体';
-      option.textContent = label + ' · ' + (file.session_id || ('未分配 ' + file.record_id)) + (file.run_id ? ' · ' + file.run_id : '');
-      $('mocap-select').append(option);
-    }
-    const aligned = mocapAssets.filter(f => f.asset_type === 'mocap_aligned_h5');
-    let first = null;
-    const failed = [];
-    for (const file of aligned) {
-      notice(`正在读取对齐数据 ${alignedCache.size + 1}/${aligned.length} …`);
-      try {
-        const data = await fetchJSON('/api/load?path=' + encodeURIComponent(file.path));
-        alignedCache.set(file.path, data);
-        first ||= file.path;
-      } catch (error) { failed.push(file.path + '：' + error.message); }
-    }
-    if (first) {
-      $('mocap-select').value = first;
-      await load('mocap');
-    }
-    if (failed.length) notice(`已读取 ${alignedCache.size} 段；加载失败：${failed.join('；')}`, true);
-    else if (!first) notice('当前没有已对齐的动捕 H5；可从会话列表选择原始刚体轨迹。');
-  } catch (error) {notice('无法读取数据目录：' + error.message, true);}
+    recalculate();
+    notice('转换设置已更改，请重新加载两路数据；原始文件不变。');
+  };
+  $('refresh').onclick = refreshCatalog;
+  await refreshCatalog();
 }
 init().catch(error => notice('三维视图初始化失败，请检查浏览器 WebGL 支持：' + error.message, true));

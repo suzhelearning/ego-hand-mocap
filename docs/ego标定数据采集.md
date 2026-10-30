@@ -36,3 +36,17 @@ samples/0001/camera/     手动归档图片及时间、时钟域、帧号和 SHA
 ```
 
 `receiver_time_ns` 和 `publisher_received_time_ns` 是 Linux 接收时钟，不是图像或 OptiTrack 曝光时间；NatNet 高精度字段保留原始 ticks，频率未经确认。`usable_rigid_data` 仅表示窗口有至少一帧有效刚体，不代表静止、同步或标定质量合格。无刚体帧和无效帧仍被保存。正式采集建议同时保存 Motive `.tak`，并检查帧号和丢帧计数。
+
+## 联合 H5 标定录制（2026-10-30）
+
+使用已有联合采集入口，同时启动 Ego 录制并保存 NatNet 刚体：
+
+```bash
+./mocap record --mode h5
+```
+
+默认输出为项目下 `data/sessions/calibration_<北京时间YYYYMMDD_HHMMSS>_<随机编号>/`，启动和结束时均打印完整路径。目录内包含实际采集导出的 `ego.h5`、`mocap.h5`、`video/`、`clocks/`、`capture/` 和 `session.json`。失败时保留已有产物及失败状态，不保证所有文件均已生成。
+
+`session.json` 的 `capture_purpose=ego_extrinsic_calibration` 标记此次用途，不表示已标定成功。普通 take 模式保留原命名规则。显式 `--session-id` 仍使用指定名称，例如 `./mocap record --mode h5 --session-id calibration_left_rgb_001`。目录已存在时拒绝覆盖。
+
+保留 `data/sessions/` 结构以兼容现有离线 SLAM 和时间对齐工具。当前命令负责录制，不会自动运行 SLAM 或求解 T_BC。

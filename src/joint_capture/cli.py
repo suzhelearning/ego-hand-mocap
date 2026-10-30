@@ -23,9 +23,25 @@ def positive(value):
     return n
 
 
+class CaptureParser(argparse.ArgumentParser):
+    def parse_args(self, args=None, namespace=None):
+        result=super().parse_args(args,namespace)
+        result.mode=result.mode or ('h5' if result.calibration else 'take')
+        if result.calibration:
+            if result.mode!='h5':self.error('--calibration 仅支持 --mode h5')
+            if result.duration is not None:self.error('标定流程自动控制时长，不能同时指定 --duration')
+            if result.no_clock_probes:self.error('标定录制需要对时，不能使用 --no-clock-probes')
+        elif result.preview_calibration:self.error('--preview-calibration 需要 --calibration rbc 或 tbc')
+        return result
+
+
 def parser():
     defaults=network_defaults()
-    p=argparse.ArgumentParser(prog='mocap record',description='协调录制Ego及Ubuntu动捕H5；不插值、不修改曝光')
+    p=CaptureParser(prog='mocap record',description='两种联合采集：EGO+Ubuntu H5 或 EGO+Windows Take')
+    p.add_argument('--mode',choices=['h5','take'],default=None,help='采集方式，默认take；指定--calibration时默认h5')
+    p.add_argument('--calibration',type=str.lower,choices=['rbc','tbc'],help='旋转或平移标定动作引导，完成后自动保存')
+    p.add_argument('--preview-calibration',action='store_true',help='仅显示标定动作与时长，不连接设备或录制')
+    p.add_argument('--windows-take-root',help='Windows保存根目录，默认远端 ~/Desktop/syz/ego-hand/remote；例如 D:\\MocapSessions')
     p.add_argument('--duration',type=positive,default=None,help='录制秒数；省略则按Ctrl+C停止并保存')
     p.add_argument('--output-root',type=Path,default=PROJECT_ROOT,help='输出项目根目录；会话数据写入data/sessions/<session_id>/')
     p.add_argument('--session-id',help='可选会话名；已有文件绝不覆盖')
@@ -33,16 +49,22 @@ def parser():
     p.add_argument('--ego-ip',default=defaults.get('ego_ip','192.168.100.1'),help='Ego USB网络IP')
     p.add_argument('--motive-server-ip',default=defaults.get('motive_server_ip','169.254.213.247'))
     p.add_argument('--natnet-client-ip',default=None,help='默认按到Motive的路由自动选择')
-    p.add_argument('--windows-host',default=defaults.get('windows_host','windows-pc'),help='已配置SSH的Windows主机名，用于对时')
+    p.add_argument('--windows-host',default=defaults.get('windows_host','windows-pc'),help='Windows SSH主机名，用于对时及Take文件核验')
     p.add_argument('--no-clock-probes',action='store_true',help='明确跳过对时，只保存原始采集时间；不推荐正式同步采集使用')
     p.add_argument('--startup-timeout',type=positive,default=15)
-    p.add_argument('--export-timeout',type=positive,default=3600,help='解密/复制超时秒数；长录制可增大，默认3600')
+    p.add_argument('--export-timeout',type=positive,default=3600,help='EGO导出及Windows Take文件核验超时秒数，默认3600')
     p.set_defaults(warmup=1.0,tail=.75)
     return p
 
 
 def main(argv=None):
     args=parser().parse_args(argv);stop=threading.Event()
+    if args.preview_calibration:
+        from .guidance import build_plan
+        plan=build_plan(args.calibration)
+        print(f"{args.calibration.upper()} 标定流程，计划 {sum(s['duration_s'] for s in plan)} 秒；动作时间仅为提示，不代表检测到实际动作。")
+        for i,step in enumerate(plan,1):print(f"{i:02d}. {step['instruction']}（{step['duration_s']} 秒）")
+        return 0
     def request_stop(signum,frame):
         if not stop.is_set():print('\n收到停止请求，正在保存；请等待导出完成。',flush=True)
         stop.set()

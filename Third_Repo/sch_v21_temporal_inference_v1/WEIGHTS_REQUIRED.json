@@ -1,0 +1,27 @@
+[
+  {
+    "path": "weights/anyhand/wilor/anyhand_wilor.ckpt",
+    "bytes": 2565031198,
+    "sha256": "9709eca6e77fb77d2cfcf6ee641660f98dca6941e9fc1cf7a5be19fe62164b77"
+  },
+  {
+    "path": "weights/anyhand/wilor/model_config_wilor.yaml",
+    "bytes": 2169,
+    "sha256": "9be1e6e7b51b0d208ec653e9c352a00543430bf127ec1093d5c7c631350b44b1"
+  },
+  {
+    "path": "WiLoR/pretrained_models/detector.pt",
+    "bytes": 53582271,
+    "sha256": "5ef3df44e42d2db52d4ffe91f83a22ce9925e2acc9abebf453f2c5d22e380033"
+  },
+  {
+    "path": "WiLoR/mano_data/MANO_RIGHT.pkl",
+    "bytes": 3821356,
+    "sha256": "45d60aa3b27ef9107a7afd4e00808f307fd91111e1cfa35afd5c4a62de264767"
+  },
+  {
+    "path": "WiLoR/mano_data/mano_mean_params.npz",
+    "bytes": 1178,
+    "sha256": "efc0ec58e4a5cef78f3abfb4e8f91623b8950be9eff8b8e0dbb0d036ebc63988"
+  }
+]

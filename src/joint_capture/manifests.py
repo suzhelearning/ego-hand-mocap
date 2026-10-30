@@ -39,6 +39,8 @@ def resolve_session_asset(root: Path, manifest: dict, asset_id: str) -> Path:
 
 
 def resolve_clock_directory(session_dir: Path) -> Path:
+    flat = Path(session_dir) / "clocks"
+    if flat.is_dir():return flat
     current = Path(session_dir) / "raw" / "clocks"
     legacy = Path(session_dir) / "sync"
     return current if current.is_dir() else legacy

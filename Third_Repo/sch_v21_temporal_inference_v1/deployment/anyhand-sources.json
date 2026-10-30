@@ -1,0 +1,21 @@
+{
+  "repository": "https://github.com/chen-si-cs/AnyHand.git",
+  "commit": "33a4c4cd71605e21076d31639c9c83dc76053eb8",
+  "wilor_commit": "50847f9db9294351478521700e35ca8ff798b5f8",
+  "model_repository": "chen-si-02/AnyHand-Models",
+  "model_revision": "b56815a4f3be40a8db4f429084ee1fe6f4c8437f",
+  "files": {
+    "anyhand_wilor.ckpt": {
+      "bytes": 2565031198,
+      "sha256": "9709eca6e77fb77d2cfcf6ee641660f98dca6941e9fc1cf7a5be19fe62164b77"
+    },
+    "model_config_wilor.yaml": {
+      "bytes": 2169,
+      "sha256": "9be1e6e7b51b0d208ec653e9c352a00543430bf127ec1093d5c7c631350b44b1"
+    },
+    "anyhand_hamer.ckpt": {
+      "bytes": 2689571020,
+      "sha256": "ae8d1f592ec9a8b5389cc16c49d5d4fd024696cb554c7d6f4fab6d83d5156f07"
+    }
+  }
+}

@@ -106,3 +106,77 @@ def test_aligned_h5_uses_rgb_clock_and_masks_unusable():
     assert abs(result['frames'][1]['time_s']-.033333333)<1e-9
     assert result['frames'][0]['points']==[[1.,2.,3.]]
     assert result['frames'][1]['points']==[None]
+
+
+def test_canonical_aligned_versions_and_incomplete_source(tmp_path):
+    import h5py
+    from motion_web.data import load_path
+    path = tmp_path / 'aligned.h5'
+    with h5py.File(path, 'w') as f:
+        f.attrs['schema'] = 'ego-session-aligned-v2'
+        for version in ('v1', 'v2', 'broken'):
+            g = f.create_group('processing/alignment/' + version)
+            g.attrs['complete'] = True
+            g.attrs['source_complete'] = version != 'broken'
+            g['cameras/RGB_left/rgb_pc_ns'] = [100, 200]
+            g['cameras/RGB_left/rigid_bodies/1/position'] = [[1., 2., 3.], [4., 5., 6.]]
+            g['cameras/RGB_left/rigid_bodies/1/usable'] = [True, False]
+    with pytest.raises(ValueError, match='显式指定版本'):
+        load_path(path)
+    assert load_path(path, 'v1')['frames'][1]['points'] == [None]
+    with pytest.raises(ValueError, match='源数据未完成'):
+        load_path(path, 'broken')
+    with pytest.raises(ValueError):
+        load_path(path, '../v1')
+
+
+def test_c3d_markers_preserve_labels_units_and_missing(tmp_path):
+    import h5py
+    from motion_web.data import load_path
+    path = tmp_path / 'mocap.h5'
+    with h5py.File(path, 'w') as f:
+        f.attrs.update(schema='joint_capture.mocap', complete=True)
+        g = f.create_group('raw/markers')
+        g.attrs.update(units='mm', coordinate_frame='c3d_native')
+        g['positions'] = [[[1000., 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 0]]]
+        g['valid'] = [[True, False], [True, True]]
+        g['labels'] = ['wrist', 'finger']
+        f['raw/frames/time_s'] = [0., .01]
+    data = load_path(path)
+    assert data['kind'] == 'markers' and data['bones'] == []
+    assert data['labels'] == ['wrist', 'finger']
+    assert data['frames'][0]['points'] == [[1., 0, 0], None]
+
+
+def test_processed_mesh_version_is_loaded_without_replacing_raw_markers(tmp_path):
+    import h5py
+    from motion_web.data import load_path
+    path = tmp_path / 'mocap.h5'
+    with h5py.File(path, 'w') as f:
+        f.attrs['schema'] = 'joint_capture.mocap'
+        g = f.create_group('processing/mano/v1')
+        g.attrs.update(complete=True, units='mm', coordinate_frame='mocap_world')
+        g['mesh/vertices'] = [[[0., 0, 0], [1000, 0, 0], [0, 1000, 0]],
+                              [[0., 0, 1], [1000, 0, 1], [0, 1000, 1]]]
+        g['mesh/faces'] = [[0, 1, 2]]
+        g['arrays/mocap_frame_rate'] = 120.
+    result = load_path(path, stage='mano', version='v1')
+    assert result['kind'] == 'mesh'
+    assert result['faces'] == [[0, 1, 2]]
+    assert result['frames'][0]['points'][1] == [1, 0, 0]
+    assert result['frames'][1]['time_s'] == pytest.approx(1/120)
+    with pytest.raises(ValueError):
+        load_path(path, stage='mano', version='missing')
+    with h5py.File(path, 'a') as f:
+        f['processing/mano/v1/mesh/faces'][0] = [0, 1, 99]
+    with pytest.raises(ValueError, match='索引'):
+        load_path(path, stage='mano', version='v1')
+
+
+def test_json_mesh_is_rejected_instead_of_returning_missing_topology():
+    import json
+    source = {'version': 1, 'unit': 'm', 'coordinate_system': 'mocap_world',
+              'kind': 'mesh', 'faces': [[0, 1, 2]], 'frames': [
+                  {'time_s': 0, 'points': [[0, 0, 0], [1, 0, 0], [0, 1, 0]]}]}
+    with pytest.raises(ValueError, match='mesh'):
+        load_bytes('mesh.json', json.dumps(source).encode())

@@ -1,0 +1,40 @@
+{
+  "max_skew_ms": 5.0,
+  "render": true,
+  "geometry": {
+    "min_confidence": 0.3,
+    "min_angle_deg": 1.0,
+    "max_ray_gap_m": 0.025,
+    "max_reproj_px": 8.0,
+    "min_depth_m": 0.05,
+    "max_depth_m": 3.0
+  },
+  "optimizer": {
+    "iterations_a": 40,
+    "iterations_b": 60,
+    "iterations_c": 200,
+    "lr": 0.01,
+    "device": "cuda",
+    "max_gap_s": 0.2,
+    "fallback_gap_s": 0.15,
+    "min_stereo_joints": 3,
+    "sigma_px": 5.0,
+    "sigma_m": 0.015,
+    "save_vertices": true,
+    "mano_path": "WiLoR/mano_data/MANO_RIGHT.pkl",
+    "freeze_beta_temporal": false,
+    "mono_prior_mode": "left",
+    "beta_mode": "shared_optimize",
+    "articulation_mode": "optimize",
+    "reprojection_mode": "bearings",
+    "sigma_bearing": 0.012,
+    "weights": {
+      "reprojection": 1.0,
+      "stereo": 0.0,
+      "pose": 0.05,
+      "shape": 0.005,
+      "temporal": 0.005,
+      "anatomy": 0.001
+    }
+  }
+}
