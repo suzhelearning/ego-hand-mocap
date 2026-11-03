@@ -90,7 +90,7 @@ function fitView() {
   const size = bounds.isEmpty() ? .6 : Math.max(.15, bounds.getSize(new THREE.Vector3()).length());
   controls.target.copy(center);
   const distance = size / Math.min(1, camera.aspect) * 1.25;
-  camera.position.copy(center).add(new THREE.Vector3(.35, .25, 1).normalize().multiplyScalar(distance));
+  camera.position.copy(center).add(new THREE.Vector3(.35, -1, .65).normalize().multiplyScalar(distance));
   camera.near = Math.max(.0001, distance / 10000); camera.far = Math.max(100, distance * 20);
   camera.updateProjectionMatrix(); controls.update();
 }
@@ -214,14 +214,16 @@ async function refreshCatalog() {
 async function init() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(40, 1, .001, 1000);
+  camera.up.set(0, 0, 1); // Set before OrbitControls: world +Z is screen-up.
   renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   $('viewport').prepend(renderer.domElement);
   renderer.domElement.setAttribute('aria-label', 'EGO 与 MOCAP 三维动作叠加视图');
   controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true;
-  scene.add(new THREE.HemisphereLight(0xe2f7ff, 0x26384a, 2.5));
+  const hemisphere = new THREE.HemisphereLight(0xe2f7ff, 0x26384a, 2.5);
+  hemisphere.position.set(0, 0, 1); scene.add(hemisphere);
   const light = new THREE.DirectionalLight(0xffffff, 3); light.position.set(1, 3, 4); scene.add(light);
-  const grid = new THREE.GridHelper(2, 40, 0x425b72, 0x233347); grid.position.y = -.18; scene.add(grid);
+  const grid = new THREE.GridHelper(2, 40, 0x425b72, 0x233347); grid.rotation.x = Math.PI / 2; grid.position.z = 0; scene.add(grid);
   scene.add(new THREE.AxesHelper(.1));
   new ResizeObserver(() => {
     const {width, height} = $('viewport').getBoundingClientRect();

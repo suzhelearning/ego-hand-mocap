@@ -62,11 +62,7 @@ PY
     echo "三维服务未就绪，详情见 $result/viewer.log" >&2
   fi
 fi
-if [ -n "${CONDA_PREFIX:-}" ]; then
-  export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:${LD_LIBRARY_PATH:-}"
-else
-  export LD_LIBRARY_PATH="$(dirname "$repo")/okvis2-local-deps/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH:-}"
-fi
+export LD_LIBRARY_PATH="${CONDA_PREFIX:-$repo/.pixi/envs/default}/lib:${LD_LIBRARY_PATH:-}"
 export OMP_NUM_THREADS=${OMP_NUM_THREADS:-2}
 export OPENBLAS_NUM_THREADS=${OPENBLAS_NUM_THREADS:-1}
 cd "$result"

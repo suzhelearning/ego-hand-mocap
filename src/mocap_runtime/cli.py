@@ -4,6 +4,12 @@ import sys
 
 def main():
     args = sys.argv[1:]
+    if args[:1] == ["live-device"]:
+        from ego_live.server import main as run
+        return run(args[1:])
+    if args[:1] == ["pipeline"]:
+        from mocap_pipeline.cli import main as run
+        return run(args[1:])
     if args[:1] == ["record"]:
         from joint_capture.cli import main as run
         return run(args[1:])
@@ -24,5 +30,5 @@ def main():
     if args[:1] == ["track-rigid"]:
         from mocap_tools.track_rigid import main as run
         return run(args[1:])
-    print("用法: mocap {record | publish mocap | subscribe mocap | track-rigid | calibrate ego | visualize} [参数]")
+    print("用法: mocap {live-device | pipeline | record | publish mocap | subscribe mocap | track-rigid | calibrate ego | visualize} [参数]")
     return 0 if not args or args == ["--help"] else 2

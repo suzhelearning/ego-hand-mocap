@@ -1,25 +1,58 @@
-# EGO × OptiTrack 手部参考数据 Pipeline
+# EGO × Mocap：设备与手部算法对比 Pipeline
 
-通过同次采集的 EGO 图像与 OptiTrack 手部 marker，分别获得视觉预测和 MoSh++ / MANO 参考结果；统一时间、空间与关节定义后，进行可视化和误差评估。
+以 mocap 的 EGO 设备刚体位姿和手部位姿为参考，对比 EGO 的 SLAM 与始终跟随 SLAM 的视觉手部算法，统一到动捕世界系可视化。Mocap 是有质量信息的参考系统，不把 marker 拟合残差当作关节真值精度。
 
-更新日期：**2026-10-30（Asia/Shanghai）**。本文状态以本地代码和实际产物为准；完成采集或模型拟合不代表已经完成物理同步、关节真值验证或最终精度评测。
+更新日期：**2026-11-02（Asia/Shanghai）**。当前完整示例为 `20261030_182714_db5456`；下文部分采集/导入命令沿用 `20261030_152704_299c41` 历史样本，二者的帧数和指标不可混用。
 
 ## Pipeline 总览
 
-![EGO 与 OptiTrack 分阶段数据流程](docs/images/pipeline.png)
+![两条数据路线与单一统一对比](docs/images/pipeline.png)
 
-图片保存在 [`docs/images/pipeline.png`](docs/images/pipeline.png)。重绘脚本为 [`tools/render_pipeline.py`](tools/render_pipeline.py)，使用 Pillow 和 Noto CJK 字体，当前机器可运行 `/usr/bin/python3 tools/render_pipeline.py`。
+详细坐标链、评估边界与数据组织见 [统一对比 Pipeline](docs/comparison_pipeline.md)。重绘：`/usr/bin/python3 tools/render_pipeline.py`（需要 Pillow 和 Noto CJK 字体）。
 
-| Stage | 输入 → 输出 | 当前状态 |
+| Stage | 输入 → 输出 | 当前完整示例状态 |
 |---|---|---|
-| 0：实验准备与标定 | 相机、marker 布局 → 标定与接口约定 | 相机—刚体外参、RGB 曝光相位待标定 |
-| 1：统一采集 | EGO + Motive → 原始文件、时钟探针、会话清单 | Take 模式已完成实机短录制；H5 模式已有历史产物 |
-| 2：Label 与导出 | Take → 带标签 C3D | 本次数据已导出、复制并校验哈希 |
-| 3A：视觉预测 | RGB → 手部预测 | 推理源码与模型资源已到位；本会话结果接入待验证 |
-| 3B：动捕参考 | 20 个 marker → MANO 参数、网格 | 本次 1328 帧已有结果；统一 21 点导出待接入 |
-| 4：时间对齐 | 两路原始时间 → RGB 参考帧配对 | H5 路线已有实现；Take/C3D 时间锚点待补齐 |
-| 5：空间与关节统一 | 两路结果 → 相同坐标系、21 点定义 | 尚未完整接通 |
-| 6：可视化与评估 | 配对结果 → 叠加展示、质量与误差报告 | 基础播放器已有；完整双路评估待接通 |
+| 0：标定与约定 | 相机/IMU/marker → 安装外参、时间与关节定义 | 候选外参；独立验证待完成 |
+| 1：联合采集 | EGO + Motive → H5、视频、Take、探针、清单 | 已采集；take 默认，h5 可选 |
+| 2：本地汇总 | Take 标注导出 C3D，EGO 文件回传 | 归档三 H5，保留原始文件与哈希 |
+| 3A：Mocap 参考 | EGO marker → 设备位姿；手部 marker → MANO/21点 | 5347 帧，27 marker |
+| 3B：EGO 算法 | RGB+IMU → SLAM；RGB → 相机系手部预测 | OKVIS 1291 位姿；左手186/1293有效 |
+| 4：时空统一 | 时间对应、固定安装与世界变换、单位/左右手/关节顺序 | 本会话经验配准；曝光级同步未验证 |
+| 5：统一对比 | mocap设备/手虚影 ↔ SLAM设备/视觉手实体 | 固定初始化世界关系；独立安装与时间标定待完成 |
+
+## 单一统一对比：mocap 虚影与 EGO 算法实体
+
+- **mocap-benchmark 虚影**：EGO-device 完整 URDF 虚影与 hand 轨迹；设备安装必须与会话刚体模板兼容。
+- **算法实体**：SLAM 设备轨迹与视觉手；视觉手始终基于 SLAM 位姿，不使用 mocap 设备位姿定位。
+- IMU、左右光心、EGO 原点和局部轴为辅助层。世界统一 Z-up、单位米，缺失结果隐藏。
+
+### 初始化时建立固定世界关系
+
+T_AB 表示 B→A。W=动捕世界，L=新版SLAM的FLU世界，F=cam0的FLU坐标，I=IMU，B=marker刚体，C=左相机光学RDF坐标。
+
+```text
+T_FC：光学 RDF → cam0 FLU，(x,y,z) → (z,-x,-y)
+T_FB = T_FC @ inverse(T_IC) @ T_IB
+T_WL = T_WB_mocap(t0) @ inverse(T_LF_SLAM(t0) @ T_FB)
+算法设备：T_WB(t) = T_WL @ T_LF(t) @ T_FB
+算法手：p_W(t) = T_WL @ T_LF(t) @ T_FC @ p_C(t)
+```
+
+`t0` 是首个有效且有对应动捕观测的 SLAM 输出，不是录制命令时刻。初始化参考位姿按时间插值，之后固定 T_WL，不再用后续动捕修正算法设备或手。录制阶段本身不会运行 SLAM 或重置 Motive 原点。
+
+### 当前示例运行
+
+```bash
+cd /home/current/syz/ego_hand_ground_truth
+./mocap pipeline run --session 20261030_182714_db5456 --profile config/pipeline/20261030_182714_db5456.json
+.pixi/envs/default/bin/python -m http.server 8767 --bind 127.0.0.1 --directory reports/session_20261030_182714_db5456/world3d
+```
+
+打开 http://127.0.0.1:8767/ 。run 编排算法与导出；已有完成阶段按指纹复用，Web 直接从三 H5 重建。profile 仍限定本机、本会话与现有 marker 定义。取消此前三个模式；历史构建器 tools/build_comparison_modes.py 不再作为当前入口。
+
+本例选择 SLAM 位姿索引1：EGO相对时间0.099958s，对应动捕0.618485s。固定T_WL与初始化依据保存在world3d/initialization.json；显示缓存为initial_body.bin、initial_vision.bin；初始化和配对另存aligned.h5版本组，不覆盖历史配准版本。
+
+**限制**：此次仅改为初始化确定T_WL；T_IB与+0.518527s时间偏移仍沿用此前全段拟合候选。因此当前仍非独立精度评估。正式实验应提供独立安装标定与可靠时间锚；旧全段拟合的1.27cm/1.12cm残差不能作为新初始化方案的指标。
 
 ## 命令使用约定
 
@@ -151,7 +184,7 @@ sha256sum "$SESSION_DIR/${TAKE_STEM}.tak"
 - 处理记录为人工 Label、未做 Gap Fill；左手 `MiddleDIP` 在零基帧 587–601 缺失，共15帧。
 - 同名文件与会话清单可以证明数据关联，但不能单独证明 RGB 与 C3D 已逐帧同步。
 
-## Stage 3A — EGO 图像到手部预测
+## Stage 3B — EGO 图像到手部预测
 
 ```text
 RGB视频 + H5原始时间戳
@@ -183,7 +216,9 @@ RGB视频 + H5原始时间戳
 
 导入不会执行网络推理、自动换算坐标或补齐帧索引。输入NPZ应保留原始时间戳、帧索引与有效性数组。
 
-### 可选：EGO双目惯性位姿（OKVIS）
+### EGO双目惯性位姿（OKVIS）
+
+当前新版统一入口为 `./mocap pipeline run --session <ID> --profile <配置>`，按 cam0 FLU 导入。下面的手动转换与 `okvis_pose_to_h5.py` 命令保留为**原始 IMU 输出的兼容流程**，不可用来导入 cam0 FLU 文件。
 
 OKVIS输出设备位姿，不是手势结果。第三方工具需要图像转换目录，使用会话外临时工作区，最终位姿写回 `ego.h5`。原适配器按目录查找H5，因此临时输入只链接 `ego.h5`，避免误选 `mocap.h5` 或 `aligned.h5`。
 
@@ -209,7 +244,7 @@ ln -s "$SESSION_DIR/video" "$OKVIS_WORK/input/video"
 
 转换验证针对现有M900配置；噪声与IMU时间偏移沿用历史配置，不等于本次实测标定。检查通过并完成导入后可自行清理临时工作区；独立回放仍需要其中的转换图像。详见 [OKVIS适配器说明](Third_Repo/orbslam3_mocap-OKVIS2-X/tools/head_dataset/README.md)。
 
-## Stage 3B — 动捕 marker 到 MoSh++ / MANO 参考结果
+## Stage 3A — 动捕 marker 到 MoSh++ / MANO 参考结果
 
 算法环境位于：
 
@@ -275,7 +310,7 @@ sha256sum "$SESSION_DIR/labeled.c3d" \
 
 输出在 `mocap.h5::/processing/mano/<version>/`。算法自身的中间文件仍位于独立算法仓库，本项目不为每次算法运行新增数据子目录。
 
-## Stage 4 — 时间映射与帧配对
+## Stage 4A — 时间映射与帧配对
 
 参考时间轴为 Ubuntu `CLOCK_MONOTONIC`。采集期间保存四时间戳探针，离线拟合 EGO、Windows 到 Ubuntu 的偏移和漂移。
 
@@ -298,7 +333,7 @@ export SYNC_VERSION="sync_$(date +%Y%m%d_%H%M%S)"
 
 第一条计算时钟模型与配对表，第二条将按索引取出的动捕观测写入同一个 `aligned.h5`。新H5采集替换 `SYNC_SESSION` 即可；Take时间锚点适配仍未实现。
 
-## Stage 5 — 空间变换与统一21点
+## Stage 4B — 空间变换与统一21点
 
 约定 `T_AB` 将B系点变换到A系；W为动捕世界系，B为头戴刚体系，C为实际使用的相机系。
 
@@ -318,7 +353,7 @@ p_C_ref(t) = inverse(T_WB(t) · T_BC) · p_W_ref(t)
 
 当前没有完成空间统一、21点导出的一键命令；本阶段需先完成外参及输出接口，不能用占位命令生成可评估结果。
 
-## Stage 6 — 可视化、质量检查与评估
+## 通用播放器与质量检查（历史 Stage 6 入口）
 
 计划展示RGB上的预测/参考投影、三维手部模型叠加，以及误差、时间差和缺失随时间的变化。分别报告绝对位置误差与腕部对齐后的姿态误差；额外旋转/尺度对齐的指标单独列出。
 
@@ -416,3 +451,99 @@ data/sessions/calibration_tbc_<时间>_<随机后缀>/
 ```
 
 本功能负责采集与动作标记，录制结束不会自动运行 SLAM 或求解外参。
+
+### 初始化质量与结果追溯
+
+固定初始化导出支持 `--slam-run`、`--vision-run` 选择已有处理版本。默认在 RGB 起点后 2 秒内寻找合格初始化，对应动捕 marker RMS 不超过 3 mm，插值间隔不超过 0.1 秒；这些是可配置的工程门槛。失败时明确退出，不自动改用整段配准。
+
+`initialization.json` 记录读取数据和导出代码的 SHA-256、处理版本、质量设置、有效帧覆盖率和未确认参数；Web 顶部同步显示 SLAM 与视觉手有效帧数。覆盖率不代表精度。安装外参及物理时间同步仍待确认。
+
+完整命令和限制见 [pipeline 质量检查与复现](docs/comparison_pipeline.md#质量检查与复现)。
+
+### 统一流程入口
+
+```bash
+# 只读检查整条会话所需数据和处理版本
+./mocap pipeline status --session 20261030_182714_db5456
+# 生成固定初始化的设备与手部统一对比
+./mocap pipeline export --session 20261030_182714_db5456
+```
+
+只有一个处理版本时自动选择；存在多个版本时用 `--slam-run` 和 `--vision-run` 指定。旧 `tools/build_initialization_comparison.py` 命令仍可使用，两者调用同一实现。导出消费已有离线结果，不会自动运行全部第三方算法。
+
+架构分层、优化结果及剩余边界见 [系统架构梳理](docs/architecture-review.md)。
+
+### 一条可续跑的离线 pipeline
+
+```bash
+./mocap pipeline run --session 20261030_182714_db5456 \
+  --profile config/pipeline/20261030_182714_db5456.json
+```
+
+依次执行视觉推理、OKVIS、MANO拟合和固定初始化导出；成功阶段按输入/输出指纹复用，失败阶段留下日志可重试。当前会话已有算法结果已明确接管，未宣称本轮重新推理。参考缓存现在从三个 H5 直接重建，不再依赖旧 world3d 文件；初始化与配对结果版本化保存到 aligned.h5。
+
+详见 [续跑规则、命令及适配边界](docs/pipeline-runner.md)。物理参数仍为候选值；当前 profile 针对本机环境及本条会话。
+
+### SLAM 源码版本说明（2026-11-02）
+
+当前最新代码位于 `Third_Repo/orbslam3_mocap-OKVIS2-X`；旧 IMU 版本已移至 `Third_Repo/orbslam3_mocap-OKVIS2-X-imu`。现有 `okvis-20261101` 和展示结果属于替换前的运行。
+
+新版默认输出 cam0 光心的 FLU 位姿，原始 IMU CSV 仅供旧导入器兼容；当前 pipeline 已按 cam0 FLU 接入，两者不能混用。详见 [源码替换记录](docs/pipeline-runner.md#2026-11-02-slam-源码替换记录)。
+
+新版 cam0 FLU 接入使用 `slam_pose_frame=cam0_flu`，导入带坐标约定的独立 H5 版本，视觉手先从光学 RDF 转成 cam0 FLU 再跟随 SLAM；设备通过固定安装外参接入。原始 IMU 历史版本仍可读取。公式与环境说明见 [cam0 FLU 接入](docs/pipeline-runner.md#新版-cam0-flu-接入2026-11-02)。
+
+## EGO device 实时 URDF 可视化
+
+```bash
+./mocap live-device
+# 浏览器打开 http://127.0.0.1:8768/
+# 如需明确指定目标刚体：
+./mocap live-device --body-id 10
+```
+
+直接接收 NatNet，仅可视化，不启动录制。默认选择名称 `ego`，复用 `configs/network/lab.json` 的 Motive 地址。断线自动重连；无效跟踪或帧超过 0.5 秒未更新时隐藏模型。界面显示原始 EGO 刚体 B、URDF base 和 left_cam 的轴，可聚焦/跟随设备。
+
+模型是 `assets/head_ring_description/head_ring.urdf`，六个 STL 单位米，全部以 base 为参考。安装参数独立保存在 `config/ego_device_geometry.json`：用户确认 Motive OBJ 坐标与 URDF base 一致，GL XYZ=(-2,-13,3) mm，GO PYR=(-1,0,10)°。这些是候选几何安装偏移，不替换离线 IMU/SLAM 标定。
+
+采用列向量：`ego_rigidbody` 是 NatNet 输出刚体，`ego_base` 是原始 URDF base。实际链为 `T_world_base = T_world_rigidbody × C × G × D`。G 是从当前 Motive 接口读取的 GL/GO，D 是实际 `ego.obj` 与 STL 顶点匹配得到的 `(x,y,z)→(x,z,-y)`，C 是由同帧 marker 局部/世界坐标验证的 `(x,y,z)→(x,-z,y)`。C 与 D 不是经验补偿旋转；分别属于 NatNet 流坐标约定和 Blender 导出约定。此实例 D=C⁻¹，因此安装变换为 C×G×C⁻¹。平移转换后为 (-2,-3,-13) mm。Motive 的 PYR 对应 X/Y/Z，与 URDF 的 roll/pitch/yaw 命名不同；URDF 固定关节独立按 `Rz(yaw) × Ry(pitch) × Rx(roll)` 解析。官方依据：[Motive 附着模型轴定义](https://docs.optitrack.com/v2.3/developer-tools/camera-sdk/camera-sdk-classes/class-crigidbodysettings)、[OptiTrack 欧拉角组合](https://docs.optitrack.com/hardware/usb-camera-system-setup/tracking-bar-coordinate-system/transforming-coordinate-system-global-to-local)。几何偏移最终方向仍须对照 Motive 模型/实物核验。
+
+沿用本项目 NatNet 输入 Z-up 配置；若 Motive 改成 Y-up，使用 `--world-up y`，仅转换世界坐标到 Z-up，不改模型局部轴。`left_cam` 显示 CAD 定义轴，不把它自动等同于光学 RDF 或 SLAM FLU。服务仅监听本机 127.0.0.1。
+
+2026-11-02 最终排查：通过 SSH 读取 Windows `C:/ProgramData/OptiTrack/Motive/MotiveProfile.motive`，并使用 NatNet `GetProperty` 核对运行中的 Up Axis、Attached Geometry、Geometry Location/Orientation/Scale。实际加载的是 Blender 导出的 `ego.obj`，不是原始 STL。4617个唯一顶点双向匹配 RMS 0.00049mm；原点/比例未变，导出轴发生变化。证据存于 `reports/live_device/obj_stl_comparison.json` 与 `motive_geometry_audit.json`。此前“仅GL/GO”与“只插入一次Rx90”的实现都遗漏了实际导出链，已替换。模型安装偏移仍是用户在Motive调定的值，不代表独立物理标定。
+
+
+## 离线完整 URDF 与当前 9-marker 配置
+
+实时与离线共用 `config/ego_device_geometry.json` 以及 `ego_live.model.configured_installation`，统一定义 `ego_rigidbody`（NatNet 流出的局部系）与 `ego_base`（原始 URDF base）。设备安装变换为 `T_rigidbody_base = C × G × D`，C/G/D 的来源见上文。当前9-marker局部模板也保存在该配置中。
+
+离线从 `mocap.h5::raw/markers` 读取9个具名marker，用当前模板恢复 `ego_rigidbody` 位姿。两路设备分别计算：
+
+- 动捕虚影：`T_Wbase_mocap = T_Wrigidbody_mocap × T_rigidbody_base`。
+- SLAM实体：`T_Wbase_slam = T_WL × T_LF × T_Frigidbody × T_rigidbody_base`。
+
+SLAM仍只在初始化时确定固定 `T_WL`，之后不使用动捕逐帧纠正；手部变换链不变。IMU安装外参和时间偏移仍为候选，更新marker后须重新验证这些候选的适用性。
+
+导出包含 `device.json`、六个STL和完整URDF层级变换；页面显示橙色设备虚影、紫色设备实体和各自base轴。安装有效时，`aligned.h5::processing/initialization/<version>` 增加 `T_ego_rigidbody_base`、`T_B_base`、`T_Wbase_mocap`、`T_Wbase_slam`；保留已有刚体位姿数据集。缓存指纹覆盖安装配置、URDF及所有网格。
+
+```bash
+# 更新已有算法结果的统一展示（不重跑视觉、SLAM或MANO）
+./mocap pipeline export --session 20261030_182714_db5456   --slam-run slam-0641eb9bc683-1 --vision-run sch-v21-temporal-v1   --mano-run moshpp-v1 --registration-run okvis-20261101 --body-run v1
+# 后续完整处理仍使用标准 pipeline run 命令
+```
+
+**历史会话限制：** `20261030_182714_db5456` 是旧7-marker数据，更新配置不会补出缺失marker，也不会确认旧刚体原点与新刚体相同。其完整URDF资源会导出，但世界系模型默认隐藏，页面明确显示安装未关联；手部与原始刚体对比继续可用。只有对应旧模板的 `T_B_ego_rigidbody`（存入选定 `world_preview` H5 版本）或新的9-marker采集数据，才能可靠显示设备世界位姿。不要给旧会话填写单位桥接矩阵来绕过此检查。
+
+## 无动捕手标记的采集与处理
+
+会话配置设置 `"skip_mocap_hand": true`，只跳过动捕 MoSh++ / MANO 阶段。视觉双手推理（含其自身 MANO 重建）、cam0-FLU SLAM、设备动捕参考及完整 URDF 导出仍保留；不会创建假的 `mocap.h5::processing/mano`。遮挡的 marker 保持无效值，设备参考直接使用已记录的 NatNet 刚体位姿，并用可见 marker 校验9点模板。
+
+```bash
+./mocap pipeline run --session 20261102_160310_535306 \
+  --profile config/pipeline/20261102_160310_535306.json
+```
+
+`pipeline.json` 中 `complete` 表示算法执行和产物写入完成，不表示跟踪或识别有效。若 SLAM 全程无效，默认拒绝配准；显式设置 `"allow_unregistered_preview": true` 可以导出动捕参考与算法失败状态，此时 `registration_available=false`，不写入 `T_WL`，不显示虚假的 SLAM 设备或世界系视觉手。
+
+2026-11-02 新9-marker测试会话 `20261102_160310_535306`：请求录制5秒，RGB155帧（5.133秒），Take830帧（包含启停余量）。完整视觉推理已执行，但左右手有效结果均为0/155；SLAM输出154个位姿，有效跟踪0/154。抽查RGB画面明显偏暗、存在遮挡，因此本次不能形成有效端到端对比。统一页面显示动捕完整URDF和失败说明，详见 `reports/session_20261102_160310_535306/world3d/initialization.json`。
+
+该新会话的 `capture-candidate` 不复用旧7-marker安装关系：设备的刚体→base使用已核对的 `C × G × D`；CAD左相机轴暂按FLU解释，仅为候选光学安装关系。时间候选由本次EGO时钟探针及StartRecording命令时间建立；Take回放不含原始曝光时钟，命令ACK不等于首帧曝光，不能据此声称精确同步。没有有效SLAM初始化，所以这些候选目前未生成世界配准。重新采集前应确认左右RGB画面明亮且手部可见。

@@ -12,6 +12,7 @@ dependencies = ["numpy>=1.26,<3", "scipy>=1.11,<2", "eclipse-zenoh>=1.9,<1.10", 
 test = ["pytest>=8,<10"]
 c3d = ["ezc3d>=1.5,<2"]
 motion = ["h5py>=3.10,<4"]
+pipeline = ["opencv-python-headless>=4.8,<5"]
 
 [project.scripts]
 mocap = "mocap_runtime.cli:main"
@@ -24,6 +25,7 @@ license-files = ["licenses/*.pdf", "licenses/*.txt"]
 
 [tool.setuptools.package-data]
 motion_web = ["static/*", "static/vendor/*"]
+mocap_pipeline = ["static/*", "workers/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

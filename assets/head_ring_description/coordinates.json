@@ -1,0 +1,111 @@
+{
+  "source": "D:\\头戴\\头戴3.0\\3.0头环装配.SLDASM",
+  "frame1_SW_m": [
+    0.06754587732313498,
+    -1.1145598333150986e-16,
+    -0.09753651380550293
+  ],
+  "frame2_SW_m": [
+    -1.67719388213529e-17,
+    -0.011136163289568722,
+    -0.11576871403369499
+  ],
+  "frame2_relative_frame1_m": [
+    0.007965527407164769,
+    0.06996314801894785,
+    -0.007783385749744422
+  ],
+  "frame2_housing_local_m": [
+    -6.938893903907228e-18,
+    0.0048560199382824965,
+    0.013307106781
+  ],
+  "components": [
+    {
+      "component": "红外镜头V1.2-1",
+      "mesh": "infrared_1.stl",
+      "triangles": 2322
+    },
+    {
+      "component": "大鱼眼镜头V1.2-1",
+      "mesh": "fisheye_left.stl",
+      "triangles": 2206
+    },
+    {
+      "component": "头环3.0-1",
+      "mesh": "head_ring.stl",
+      "triangles": 5782
+    },
+    {
+      "component": "红外镜头V1.2-2",
+      "mesh": "infrared_2.stl",
+      "triangles": 2322
+    },
+    {
+      "component": "头戴镜头壳-1",
+      "mesh": "camera_housing.stl",
+      "triangles": 9038
+    },
+    {
+      "component": "大鱼眼镜头V1.2-3",
+      "mesh": "fisheye_right.stl",
+      "triangles": 2206
+    }
+  ],
+  "frame1_axes_in_SW_columns": [
+    [
+      0.18301270189221827,
+      -0.9659258262890685,
+      0.1830127018922185
+    ],
+    [
+      -0.7071067811865508,
+      -9.228728892196614e-16,
+      0.7071067811865441
+    ],
+    [
+      -0.6830127018922159,
+      -0.2588190451025195,
+      -0.6830127018922231
+    ]
+  ],
+  "frame2_axes_in_SW_columns": [
+    [
+      0.0,
+      -1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ],
+    [
+      -1.0,
+      0.0,
+      0.0
+    ]
+  ],
+  "frame2_relative_frame1_rpy_rad": [
+    -0.2532615634587293,
+    -0.7518794142949903,
+    0.3622181452116582
+  ],
+  "revision": "2026-11-02: STL vertices and normals transformed from left_cam to base; visual and collision meshes attached to base; physical assembly and base_to_left_cam unchanged",
+  "frame_names": {
+    "frame1": "left_cam",
+    "frame2": "base"
+  },
+  "urdf_root_frame": "base",
+  "left_cam_relative_base_m": [
+    -0.018232200227933808,
+    -0.06754587732325835,
+    0.011136163289631624
+  ],
+  "left_cam_relative_base_rpy_rad": [
+    2.276634065091665e-14,
+    0.7853981633975325,
+    -0.26179938779937134
+  ],
+  "mesh_frame": "base"
+}

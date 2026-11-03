@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="head_ring_3_0">
+  <link name="base">
+    <visual name="infrared_1">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://head_ring_description/meshes/infrared_1.stl" scale="1 1 1" />
+      </geometry>
+      <material name="infrared_1_material">
+        <color rgba="0.72 0.72 0.75 1" />
+      </material>
+    </visual>
+    <collision name="infrared_1">
+      <geometry>
+        <mesh filename="package://head_ring_description/meshes/infrared_1.stl" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <visual name="fisheye_left">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://head_ring_description/meshes/fisheye_left.stl" scale="1 1 1" />
+      </geometry>
+      <material name="fisheye_left_material">
+        <color rgba="0.78 0.78 0.80 1" />
+      </material>
+    </visual>
+    <collision name="fisheye_left">
+      <geometry>
+        <mesh filename="package://head_ring_description/meshes/fisheye_left.stl" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <visual name="head_ring">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://head_ring_description/meshes/head_ring.stl" scale="1 1 1" />
+      </geometry>
+      <material name="head_ring_material">
+        <color rgba="0.50 0.50 0.52 1" />
+      </material>
+    </visual>
+    <collision name="head_ring">
+      <geometry>
+        <mesh filename="package://head_ring_description/meshes/head_ring.stl" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <visual name="infrared_2">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://head_ring_description/meshes/infrared_2.stl" scale="1 1 1" />
+      </geometry>
+      <material name="infrared_2_material">
+        <color rgba="0.72 0.72 0.75 1" />
+      </material>
+    </visual>
+    <collision name="infrared_2">
+      <geometry>
+        <mesh filename="package://head_ring_description/meshes/infrared_2.stl" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <visual name="camera_housing">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://head_ring_description/meshes/camera_housing.stl" scale="1 1 1" />
+      </geometry>
+      <material name="camera_housing_material">
+        <color rgba="0.32 0.34 0.42 1" />
+      </material>
+    </visual>
+    <collision name="camera_housing">
+      <geometry>
+        <mesh filename="package://head_ring_description/meshes/camera_housing.stl" scale="1 1 1" />
+      </geometry>
+    </collision>
+    <visual name="fisheye_right">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://head_ring_description/meshes/fisheye_right.stl" scale="1 1 1" />
+      </geometry>
+      <material name="fisheye_right_material">
+        <color rgba="0.78 0.78 0.80 1" />
+      </material>
+    </visual>
+    <collision name="fisheye_right">
+      <geometry>
+        <mesh filename="package://head_ring_description/meshes/fisheye_right.stl" scale="1 1 1" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="left_cam" />
+  <joint name="base_to_left_cam" type="fixed">
+    <parent link="base" />
+    <child link="left_cam" />
+    <origin xyz="-0.018232200227934 -0.067545877323258 0.011136163289632" rpy="0.000000000000023 0.785398163397533 -0.261799387799371" />
+  </joint>
+</robot>

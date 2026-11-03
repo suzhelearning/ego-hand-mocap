@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Export head-v3 H5 + MP4 to OKVIS' EuRoC reader, preserving capture timestamps.
 
-Uses the bundled camera/IMU layout modules to resolve calibration and input axes.
+Uses the user's ORB reference to resolve runtime bindings and legacy IMU profiles.
 The input dataset is never modified. Output must be a new directory.
 """
 import argparse
@@ -9,6 +9,7 @@ import csv
 import json
 import os
 from pathlib import Path
+import sys
 
 import cv2
 import h5py
@@ -47,6 +48,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--dataset', type=Path, required=True)
     p.add_argument('--output', type=Path, required=True)
+    p.add_argument('--orbslam-reference', type=Path, default=None)
     p.add_argument('--width', type=int, default=640)
     p.add_argument('--projection', choices=['pinhole', 'native'], default='pinhole',
                    help='pinhole reprojects the >180 degree source to a valid forward view')
@@ -61,6 +63,7 @@ def main():
         p.error('fov must be within 30..160 degrees')
     if args.acc_noise is not None and (not np.isfinite(args.acc_noise) or args.acc_noise <= 0):
         p.error('acc-noise must be positive and finite')
+    sys.path.insert(0, str(args.orbslam_reference / 'Examples/Stereo-Inertial/scripts') if args.orbslam_reference else str(Path(__file__).resolve().parent))
     from dataset_layout import DatasetLayout
     from merge_dataset_camera_settings import imu_input_calibration
     os.environ['SLAM_H5_READER'] = 'h5py'
@@ -170,7 +173,7 @@ def main():
     with (out/'frame_mapping.csv').open('w') as stream:
         writer = csv.writer(stream); writer.writerow(['pair', 'left_frame_index', 'right_frame_index', 'left_ns', 'right_ns'])
         for n,(l,r) in enumerate(pairs): writer.writerow([n,int(ix[0][l]),int(ix[1][r]),int(ts[0][l]),int(ts[1][r])])
-    report = dict(source=str(layout.root), reference=str(Path(__file__).resolve().parent), frames=counts,
+    report = dict(source=str(layout.root), reference=str(args.orbslam_reference), frames=counts,
         projection=args.projection, virtual_horizontal_fov_degrees=args.fov if args.projection=='pinhole' else None,
         imu_samples=int(selected.sum()), imu_offset_s=offset, imu_offset_source='CLI override' if args.imu_offset is not None else inp['source'],
         body_frame='imu0_output', extrinsic_equation='T_SC = T_imu_from_rig @ inverse(T_camera_from_rig)',

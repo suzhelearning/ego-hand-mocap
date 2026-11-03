@@ -24,10 +24,10 @@
     <h2>显示内容</h2>
     <label class="check"><input type="checkbox" id="overlay" checked><span>叠加实时输出，观察优化变化</span></label>
     <label class="check"><input type="checkbox" id="cloud"><span>稀疏地图点云</span></label>
-    <label class="check"><input type="checkbox" id="pose" checked><span>当前 IMU 姿态坐标轴</span></label>
+    <label class="check"><input type="checkbox" id="pose" checked><span>当前 cam0 FLU 姿态坐标轴</span></label>
     <label class="check"><input type="checkbox" id="follow"><span>实时更新时跟到最新帧</span></label>
     <div class="axis-key"><span class="x">X 红</span><span class="y">Y 绿</span><span class="z">Z 蓝</span></div>
-    <p class="hint">Z 轴向上；坐标、点云和轨迹单位均为米。显示 IMU 位姿。</p>
+    <p class="hint">世界原点为初始 cam0 光心；X 向前、Y 向左、Z 向上（FLU）。单位为米。</p>
   </section>
   <section>
     <h2>图例</h2>
@@ -64,7 +64,7 @@
     <section class="panel"><div class="panel-title">XYZ 随时间变化<span class="source-status">点击曲线定位帧</span></div><div id="xyz" aria-label="位置随时间的二维曲线，X红 Y绿 Z蓝"></div></section>
     <section class="panel"><div class="panel-title">对应相机帧<span id="frameMode" class="source-status"></span></div><div class="images"><figure><img id="left" alt="当前时间的左相机帧"><figcaption>cam0 / 左相机</figcaption></figure><figure><img id="right" alt="当前时间的右相机帧"><figcaption>cam1 / 右相机</figcaption></figure></div><div id="imageNote" class="note">相机帧来自原始数据的已转换图像。</div></section>
   </div>
-  <p class="notice">固定世界坐标显示，不对轨迹做旋转或漂移修正。初始绝对航向没有外部参考；Tracking Good 表示跟踪状态，不能证明位置准确。</p><div id="path" class="path"></div>
+  <p class="notice">世界原点为初始 cam0 光心；世界 X 沿初始相机前向的水平投影，Z 沿重力反向。相机自身采用 FLU，随姿态转动。轨迹和地图使用同一刚体变换，不做漂移修正；Tracking Good 表示跟踪状态，不能证明位置准确。</p><div id="path" class="path"></div>
 </main>
 </div>
 <script>/*__INITIAL_DATA__*/</script>
@@ -146,7 +146,7 @@ for(const [id,theta]of [['rotateLeft',-.2618],['rotateRight',.2618]])$(id).oncli
 for(const[id,factor]of [['zoomIn',.8],['zoomOut',1.25]])$(id).onclick=()=>{const e=camera?.eye||startEye;setCamera({x:e.x*factor,y:e.y*factor,z:e.z*factor},camera?.up)};
 $('fit').onclick=()=>{if(!rows.length)return;bounds=ranges(rows);const a=axes();Plotly.relayout(scene,{'scene.xaxis':a[0],'scene.yaxis':a[1],'scene.zaxis':a[2]})};
 function save(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
-$('csv').onclick=()=>{if(!rows.length)return;save(new Blob(['timestamp_ns,tx,ty,tz,qx,qy,qz,qw,vx,vy,vz,bgx,bgy,bgz,bax,bay,baz,quality\n'+rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'}),'trajectory_'+$('source').value+'.csv')};
+$('csv').onclick=()=>{if(!rows.length)return;save(new Blob(['timestamp_ns,tx,ty,tz,qx,qy,qz,qw,imu_vx_world,imu_vy_world,imu_vz_world,imu_bgx,imu_bgy,imu_bgz,imu_bax,imu_bay,imu_baz,quality\n'+rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'}),'trajectory_cam0_'+$('source').value+'.csv')};
 $('download').onclick=()=>{if(offline){save(new Blob([document.documentElement.outerHTML],{type:'text/html'}),'replay_3d.html')}else{const a=document.createElement('a');a.href='/download?run='+runId;a.download='replay_3d.html';a.click()}};
 requestAnimationFrame(tick);
 if(offline){const o=document.createElement('option');o.textContent=window.OFFLINE_DATA.name;o.value='offline';$('run').append(o);$('run').disabled=true;$('follow').disabled=true;accept(window.OFFLINE_DATA,true)}else{poll(true);setInterval(()=>poll(),2000);setInterval(()=>refreshRuns().catch(()=>{}),15000)}

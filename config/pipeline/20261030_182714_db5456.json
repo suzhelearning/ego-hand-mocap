@@ -1,0 +1,48 @@
+{
+  "session": "20261030_182714_db5456",
+  "vision_repo": "/home/current/syz/ego_hand_ground_truth/Third_Repo/sch_v21_temporal_inference_v1",
+  "slam_repo": "/home/current/syz/ego_hand_ground_truth/Third_Repo/orbslam3_mocap-OKVIS2-X",
+  "mano_root": "/home/current/syz/optitrack4mano/moshpp-main-env",
+  "work_root": "/data/ego-hand-work/pipeline",
+  "ffmpeg": "/home/current/syz/optitrack4mano/moshpp-main-env/py37/.pixi/envs/default/bin/ffmpeg",
+  "slam_h5_name": "head_000022.h5",
+  "acc_noise": 0.05,
+  "registration_run": "okvis-20261101",
+  "body_run": "v1",
+  "existing_versions": {
+    "vision": "sch-v21-temporal-v1",
+    "mano": "moshpp-v1"
+  },
+  "quality": {
+    "max_gap_s": 0.1,
+    "max_initial_delay_s": 2,
+    "max_marker_rms_mm": 3
+  },
+  "fingerprint_files": {
+    "vision": [
+      "/home/current/syz/ego_hand_ground_truth/Third_Repo/sch_v21_temporal_inference_v1/deployment",
+      "/home/current/syz/ego_hand_ground_truth/Third_Repo/sch_v21_temporal_inference_v1/handpose_pipeline",
+      "/home/current/syz/ego_hand_ground_truth/Third_Repo/sch_v21_temporal_inference_v1/configs",
+      "/home/current/syz/ego_hand_ground_truth/Third_Repo/sch_v21_temporal_inference_v1/WEIGHTS_REQUIRED.json",
+      "/home/current/syz/ego_hand_ground_truth/Third_Repo/sch_v21_temporal_inference_v1/weights/anyhand/wilor/anyhand_wilor.ckpt",
+      "/home/current/syz/ego_hand_ground_truth/Third_Repo/sch_v21_temporal_inference_v1/WiLoR/pretrained_models/detector.pt",
+      "/home/current/syz/ego_hand_ground_truth/Third_Repo/sch_v21_temporal_inference_v1/WiLoR/mano_data/MANO_RIGHT.pkl"
+    ],
+    "slam": [
+      "/home/current/syz/ego_hand_ground_truth/Third_Repo/orbslam3_mocap-OKVIS2-X/tools/head_dataset",
+      "/home/current/syz/ego_hand_ground_truth/Third_Repo/orbslam3_mocap-OKVIS2-X/build/okvis_app_synchronous",
+      "/home/current/syz/ego_hand_ground_truth/Third_Repo/orbslam3_mocap-OKVIS2-X/okvis_apps",
+      "/home/current/syz/ego_hand_ground_truth/Third_Repo/orbslam3_mocap-OKVIS2-X/okvis_ceres",
+      "/home/current/syz/ego_hand_ground_truth/Third_Repo/orbslam3_mocap-OKVIS2-X/okvis_multisensor_processing"
+    ],
+    "mano": [
+      "/home/current/syz/optitrack4mano/moshpp-main-env/source/src",
+      "/home/current/syz/optitrack4mano/moshpp-main-env/hand20/left_layout.json",
+      "/home/current/syz/optitrack4mano/moshpp-main-env/hand20/assets/MANO_LEFT.pkl",
+      "/home/current/syz/optitrack4mano/moshpp-main-env/smoke_20_left/config.json"
+    ]
+  },
+  "slam_source_note": "2026-11-02 current cam0-FLU code; old okvis-20261101 retained only as historical result and candidate physical calibration source",
+  "slam_output_contract": "T_worldFLU_cam0FLU from trajectory_cam0_ba.csv (fallback final); optical point coordinates converted with R_optical_flu.T",
+  "slam_pose_frame": "cam0_flu"
+}

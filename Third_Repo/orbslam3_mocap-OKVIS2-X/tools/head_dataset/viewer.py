@@ -15,6 +15,7 @@ from urllib.parse import parse_qs, urlparse
 import webbrowser
 
 import numpy as np
+from pose_frames import cam0_extrinsic, to_cam0, world_flu
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSETS = Path(__file__).with_name('viewer')
@@ -79,7 +80,11 @@ def read_trajectory(path, quality, keep_first=False):
 
 
 def load_data(result, name=None):
-    tracked = [result/n for n in [*FILES.values(), 'tracking_quality.csv', 'okvis2-slam-final_map.csv']]
+    dataset = dataset_for(result)
+    if dataset is None:
+        raise ValueError('Cannot resolve dataset calibration for cam0 optical pose')
+    tracked = [result/n for n in [*FILES.values(), 'tracking_quality.csv', 'okvis2-slam-final_map.csv', 'okvis_gui.yaml', 'viewer_manifest.json']]
+    tracked.append(dataset/'okvis.yaml')
     fingerprint = tuple((p.stat().st_mtime_ns, p.stat().st_size) if p.exists() else (0,0) for p in tracked)
     with LOCK:
         cached = CACHE.get(str(result))
@@ -94,7 +99,20 @@ def load_data(result, name=None):
                 except (ValueError, TypeError, KeyError):
                     continue
         trajectories = {key: read_trajectory(result/file, quality, keep_first=(key=='live')) for key,file in FILES.items()}
+        transform = cam0_extrinsic(dataset, result)
+        trajectories = {key: to_cam0(rows, transform) for key,rows in trajectories.items()}
         preferred = next((key for key in ('ba','final','live') if trajectories[key]), 'live')
+        reference = trajectories[preferred]
+        world_frame = {'origin': 'initial_cam0_optical_center',
+                       'reference_stream': preferred,
+                       'reference_timestamp_ns': reference[0][0] if reference else None,
+                       'axes': 'X initial camera forward projected horizontally; Y left; Z gravity-up',
+                       'body_axes': 'cam0 FLU: X optical Z, Y negative optical X, Z negative optical Y',
+                       'velocity_frame': 'world_FLU', 'bias_frame': 'IMU_sensor'}
+        trajectories, origin, world_rotation = world_flu(trajectories, preferred)
+        world_frame['R_world_flu_from_estimator_world'] = world_rotation.tolist()
+        world_frame['R_optical_from_cam0_flu'] = [[0.,-1.,0.],[0.,0.,-1.],[1.,0.,0.]]
+        world_frame['origin_in_estimator_world_m'] = origin.tolist()
         rows = trajectories[preferred]
         points = []
         map_file = result/'okvis2-slam-final_map.csv'
@@ -108,6 +126,7 @@ def load_data(result, name=None):
                     break  # only the landmark section, not keyframe descriptor rows
                 try:
                     pt = np.array([float(v) for v in row[1:4]])
+                    pt = world_rotation@(pt-origin)
                 except ValueError:
                     break
                 if np.isfinite(pt).all() and np.all(pt >= low-margin) and np.all(pt <= high+margin):
@@ -121,7 +140,9 @@ def load_data(result, name=None):
                 'trajectories': trajectories, 'preferred': preferred, 'points': points,
                 'hasFrames': bool(dataset and (dataset/'mav0/cam0/data.csv').exists()),
                 'completed': bool(trajectories['ba']), 'updated': time.time(),
-                'frameConvention': 'T_world_imu; Z up; metres; absolute yaw is not externally referenced'}
+                'poseFrame': 'cam0_FLU', 'T_imu_cam0': transform.tolist(),
+                'worldFrame': world_frame,
+                'frameConvention': 'T_worldFLU_cam0FLU; initial optical centre origin; X initial horizontal forward, Y left, Z gravity-up; metres; IMU velocity in world FLU, biases in IMU sensor axes'}
         CACHE[str(result)] = (fingerprint, data)
         return data
 

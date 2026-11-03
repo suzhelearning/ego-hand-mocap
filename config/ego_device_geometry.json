@@ -1,0 +1,145 @@
+{
+  "status": "candidate",
+  "source": "Verified from running Motive GetProperty and Windows ego.obj vertex correspondence",
+  "rigid_body_name": "ego",
+  "urdf": "assets/head_ring_description/head_ring.urdf",
+  "gl_xyz_mm": [
+    -2,
+    -13,
+    3
+  ],
+  "go_pyr_deg": [
+    -1,
+    0,
+    10
+  ],
+  "rotation_convention": "Rx(pitch) @ Ry(yaw) @ Rz(roll)",
+  "natnet_world_up": "z",
+  "geometry_reference_frame": "motive_native_marker",
+  "transform_direction": "T_native_marker_OBJ: OBJ points -> native Motive marker coordinates",
+  "obj_from_urdf_base": [
+    [
+      1,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      -1,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1
+    ]
+  ],
+  "stream_local_from_native_marker": [
+    [
+      1,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      -1,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1
+    ]
+  ],
+  "geometry_file_windows": "C:/Users/current robotics/Desktop/syz/ego-hand/head_ring_description/ego.obj",
+  "geometry_scale_percent": [
+    100,
+    100,
+    100
+  ],
+  "evidence": [
+    "reports/live_device/obj_stl_comparison.json",
+    "reports/live_device/rotation_diagnostic.json",
+    "reports/live_device/windows_MotiveProfile.motive"
+  ],
+  "native_marker_template": {
+    "body_id": 10,
+    "names": [
+      "ego:Marker_001",
+      "ego:Marker_002",
+      "ego:Marker_003",
+      "ego:Marker_004",
+      "ego:Marker_005",
+      "ego:Marker_006",
+      "ego:Marker_007",
+      "ego:Marker_008",
+      "ego:Marker_009"
+    ],
+    "positions_m": [
+      [
+        0.007133756764233112,
+        -0.0008635020931251347,
+        0.026956139132380486
+      ],
+      [
+        0.0059462497010827065,
+        0.009013550356030464,
+        0.037954483181238174
+      ],
+      [
+        0.005706354975700378,
+        0.00765002379193902,
+        -0.033329132944345474
+      ],
+      [
+        0.0075304568745195866,
+        -0.0008394491742365062,
+        -0.019459817558526993
+      ],
+      [
+        -0.004591481760144234,
+        -0.017847998067736626,
+        -0.04714009910821915
+      ],
+      [
+        -0.005150339100509882,
+        -0.018411140888929367,
+        -0.016741836443543434
+      ],
+      [
+        -0.003543166909366846,
+        -0.01573445275425911,
+        0.05205889046192169
+      ],
+      [
+        -0.006291085854172707,
+        0.01872953027486801,
+        0.0160428024828434
+      ],
+      [
+        -0.006628188770264387,
+        0.01829265058040619,
+        -0.016354886814951897
+      ]
+    ],
+    "source": "Motive model description, confirmed current 9-marker body"
+  }
+}

@@ -3,13 +3,13 @@
 set -euo pipefail
 repo=$(cd "$(dirname "$0")" && pwd)
 usage() {
-  cat <<EOF
+  cat <<'EOF'
 用法：
-  $repo/run_head.sh /完整路径/head_数据集目录
+  /home/wh/rk3576/OKVIS2-X/run_head.sh /完整路径/head_数据集目录
 
 例如：
-  $repo/run_head.sh /数据集/head_000009
-  $repo/run_head.sh /数据集/head_000010
+  /home/wh/rk3576/OKVIS2-X/run_head.sh /home/wh/下载/head_0/head_000009
+  /home/wh/rk3576/OKVIS2-X/run_head.sh /home/wh/桌面/1008pico/4/head_000010
 
 若已有匹配的数据转换缓存，自动复用；否则先导出 H5+MP4。
 也支持直接传入包含 okvis.yaml 和 mav0 的导出目录。
@@ -102,7 +102,8 @@ echo '开始运行：打开相机特征匹配窗口和三维浏览器界面，�
 OKVIS_GUI=1 bash "$repo/tools/head_dataset/run.sh" "$dataset" "$result"
 echo
 echo "完成，结果目录：$result"
-echo "轨迹：$result/trajectory_imu.tum"
+echo "轨迹：$result/trajectory_cam0.tum"
+echo "地图点：$result/landmarks_cam0_world.csv"
 echo "统计：$result/summary.json"
 echo "日志：$result/run.log"
 echo "离线三维回放：$result/replay_3d.html"
