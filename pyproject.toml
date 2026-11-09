@@ -9,6 +9,8 @@ requires-python = ">=3.10"
 dependencies = ["numpy>=1.26,<3", "scipy>=1.11,<2", "eclipse-zenoh>=1.9,<1.10", "h5py>=3.10,<4"]
 
 [project.optional-dependencies]
+emg = ["pyserial>=3.5,<4"]
+preview = ["av>=16,<20", "pyzmq>=26,<28", "Pillow>=10,<13"]
 test = ["pytest>=8,<10"]
 c3d = ["ezc3d>=1.5,<2"]
 motion = ["h5py>=3.10,<4"]

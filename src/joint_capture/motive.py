@@ -2,8 +2,9 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import base64
+import hashlib
 import json
-from pathlib import PureWindowsPath
+from pathlib import Path, PureWindowsPath
 import socket
 import struct
 import subprocess
@@ -103,7 +104,7 @@ class MotiveTakeController:
     def _path_literal(self):
         return "'"+str(self.directory).replace("'","''")+"'"
 
-    def prepare(self, stream):
+    def prepare(self, stream, start_stream=True):
         self.stream=stream
         if self.take_root.parts[0]=='~':
             home=json.loads(self._powershell('[Environment]::GetFolderPath("UserProfile") | ConvertTo-Json -Compress'))
@@ -112,7 +113,8 @@ class MotiveTakeController:
         if self.commands.mode()!=0:
             self.commands.command('LiveMode')
             if self.commands.mode()!=0:raise RuntimeError('Motive未进入Live模式')
-        stream.start()
+        if start_stream:stream.start()
+        else:stream.check()
         if stream.motive_recording is not False:raise RuntimeError('Motive已在录制或状态未知，拒绝接管')
         # Reuse the root; only this recording's timestamp-named file must be absent.
         self._powershell('$p='+self._path_literal()+'; '
@@ -166,7 +168,7 @@ class MotiveTakeController:
 
     def verify(self):
         if not self.stop_confirmed:raise RuntimeError('Motive停止未确认，不能宣告Take保存完成')
-        # A nonzero file must be stable and openable without sharing before hashing.
+        # A stopped Take must be stable; Motive may retain a shared handle after stop.
         target=str(self.directory/(self.take_name+'.tak')).replace("'","''")
         code="$target='"+target+"';"+'''
 $deadline=[DateTime]::UtcNow.AddSeconds('''+str(float(self.export_timeout))+''');
@@ -177,7 +179,7 @@ while([DateTime]::UtcNow -lt $deadline){
   if($f.Length -eq $size -and $f.LastWriteTimeUtc -eq $mtime){
    $handle=$null;
    try {
-    $handle=[IO.File]::Open($f.FullName,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::None);
+    $handle=[IO.File]::Open($f.FullName,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::ReadWrite);
     $sha=[Security.Cryptography.SHA256]::Create();
     try {$hash=([BitConverter]::ToString($sha.ComputeHash($handle))).Replace('-','').ToLower()} finally {$sha.Dispose()};
     @{path=$f.FullName;size=$handle.Length;sha256=$hash} | ConvertTo-Json -Compress; exit 0
@@ -190,3 +192,32 @@ while([DateTime]::UtcNow -lt $deadline){
         if PureWindowsPath(result['path'])!=self.directory/(self.take_name+'.tak') or result['size']<=0:
             raise ValueError('Take验证返回了错误文件')
         return {'host':self.windows_host,**result,'storage':'windows','copied_to_ubuntu':False}
+
+    def copy_to(self, destination):
+        """Stream the stopped raw Take to Ubuntu; verify before and after transfer."""
+        if not self.stop_confirmed: raise RuntimeError('Motive停止未确认，拒绝复制')
+        destination=Path(destination)
+        if destination.exists(): raise FileExistsError(str(destination))
+        before=self.verify()
+        target=before['path'].replace("'", "''")
+        code=("$ErrorActionPreference='Stop'; $ProgressPreference='SilentlyContinue'; "
+              "$f=[IO.File]::Open('"+target+"',[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::ReadWrite); "
+              "try {$f.CopyTo([Console]::OpenStandardOutput())} finally {$f.Dispose()}")
+        encoded=base64.b64encode(code.encode('utf-16le')).decode()
+        partial=destination.with_suffix(destination.suffix+'.partial')
+        with partial.open('xb') as output:
+            result=subprocess.run(['ssh','-T','-o','BatchMode=yes','-o','ConnectTimeout=5',self.windows_host,
+                'powershell -NoProfile -EncodedCommand '+encoded],stdout=output,stderr=subprocess.PIPE,
+                timeout=self.export_timeout,start_new_session=True)
+        if result.returncode: raise RuntimeError('Motive原始文件复制失败: '+result.stderr.decode(errors='replace')[-1000:])
+        after=self.verify()
+        digest=hashlib.sha256()
+        with partial.open('rb') as source:
+            for chunk in iter(lambda:source.read(1024*1024),b''):digest.update(chunk)
+        if (partial.stat().st_size!=before['size'] or digest.hexdigest()!=before['sha256']
+                or after['sha256']!=before['sha256'] or after['size']!=before['size']):
+            raise RuntimeError('Motive本机副本校验失败；保留partial和Windows原件')
+        # Never overwrite a concurrently created destination.
+        import os
+        os.link(partial,destination);partial.unlink()
+        return dict(before,local_path=str(destination.resolve()),copied_to_ubuntu=True,local_sha256=digest.hexdigest())

@@ -17,11 +17,12 @@ from .natnet import NatNetStream
 from .ego import EgoController
 from .clock import ClockProbe, local_address
 from .paths import ProjectPaths
+from .emg import EmgCapture, DEFAULT_PORTS
 from .motive import MotiveTakeController, validate_take_root, DEFAULT_TAKE_ROOT
 
 
 def run_session(config, stop_event, *, ego_factory=EgoController,
-                stream_factory=NatNetStream, probe_factory=ClockProbe, take_factory=MotiveTakeController):
+                stream_factory=NatNetStream, probe_factory=ClockProbe, take_factory=MotiveTakeController, emg_factory=EmgCapture):
     mode=getattr(config,'mode','take')
     if mode not in ('h5','take'):raise ValueError('未知采集模式')
     calibration=getattr(config,'calibration',None)
@@ -46,10 +47,10 @@ def run_session(config, stop_event, *, ego_factory=EgoController,
         (session/'clocks').mkdir(parents=True);paths.capture_records(session_id).mkdir(parents=True)
         print(('标定输出目录：' if mode=='h5' else '采集输出目录：')+str(session.resolve()),flush=True)
         return _capture(config,stop_event,session_id,session,mocap,ego_path,
-                        ego_factory,stream_factory,probe_factory,take_factory)
+                        ego_factory,stream_factory,probe_factory,take_factory,emg_factory)
 
 
-def _capture(config,stop_event,session_id,session,mocap_path,ego_path,ego_factory,stream_factory,probe_factory,take_factory):
+def _capture(config,stop_event,session_id,session,mocap_path,ego_path,ego_factory,stream_factory,probe_factory,take_factory,emg_factory):
     mode=getattr(config,'mode','take')
     use_take=mode=='take'
     manifest={'capture_purpose':'ego_extrinsic_calibration' if mode=='h5' else 'general_capture','capture_mode':mode,'session_id':session_id,'status':'preparing','pc_boot_id':Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
@@ -74,7 +75,7 @@ def _capture(config,stop_event,session_id,session,mocap_path,ego_path,ego_factor
         print(f'[{stage}] {error}',flush=True)
     save_json(manifest_path,manifest)
     stream=None;ego=None;writer=None;take=None;probes=[];attempted=False;stopped=False
-    guide=None
+    guide=None;emg=None
     try:
         if getattr(config,'calibration',None):
             from .guidance import CalibrationGuide
@@ -88,6 +89,11 @@ def _capture(config,stop_event,session_id,session,mocap_path,ego_path,ego_factor
         initial=ego.status();manifest['ego']['initial_status']=initial
         if initial['control']['recording']['active']:
             raise RuntimeError('Ego已经在录制，未作任何启动/停止操作')
+        if getattr(config,'emg',False):
+            ports={side:getattr(config,f'emg_{side}_port',None) or port for side,port in DEFAULT_PORTS.items()}
+            emg=emg_factory(session,ports);emg.start()
+            manifest['emg']={'enabled':True,'ports':ports,'clock_sync':'passive_coarse_only','physical_sync_valid':False}
+            record_event('emg_capture_started')
         client_ip=config.natnet_client_ip or local_address(config.motive_server_ip)
         stream=stream_factory(config.motive_server_ip,client_ip,timeout=config.startup_timeout)
         if use_take:
@@ -128,6 +134,7 @@ def _capture(config,stop_event,session_id,session,mocap_path,ego_path,ego_factor
             stream.check()
             if take:take.check()
             for probe in probes:probe.check()
+            if emg:emg.check()
             if time.monotonic()-last_ego_check>=1:
                 ego.check();last_ego_check=time.monotonic()
             if stop_event.is_set() or (config.duration is not None and time.monotonic()-start>=config.duration):break
@@ -181,6 +188,12 @@ def _capture(config,stop_event,session_id,session,mocap_path,ego_path,ego_factor
                 fail('h5_close',e)
                 try:writer.close(complete=False)
                 except Exception:pass
+        if emg:
+            try:
+                manifest['emg']=emg.close();record_event('emg_capture_stopped')
+                for device in manifest['emg']['devices']:
+                    if device.get('error'):fail('emg_close',device['error'])
+            except Exception as e:fail('emg_close',e)
         if probes:time.sleep(.4)
         for probe in probes:
             try:probe.close()
@@ -221,6 +234,9 @@ def _capture(config,stop_event,session_id,session,mocap_path,ego_path,ego_factor
             'ego_clock_probes':session/'clocks'/'ego.jsonl',
             'windows_clock_probes':session/'clocks'/'windows.jsonl',
         }
+        if emg:
+            for path in sorted((session/'emg').glob('*')):
+                if path.is_file():candidates['emg_'+path.stem+('_'+path.suffix[1:] if path.name!='report.json' else '')]=path
         for asset_id,path in candidates.items():
             if path and Path(path).is_file():
                 assets[asset_id]={'path':Path(path).resolve().relative_to(session.resolve()).as_posix(),

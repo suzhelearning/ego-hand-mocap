@@ -547,3 +547,34 @@ SLAM仍只在初始化时确定固定 `T_WL`，之后不使用动捕逐帧纠正
 2026-11-02 新9-marker测试会话 `20261102_160310_535306`：请求录制5秒，RGB155帧（5.133秒），Take830帧（包含启停余量）。完整视觉推理已执行，但左右手有效结果均为0/155；SLAM输出154个位姿，有效跟踪0/154。抽查RGB画面明显偏暗、存在遮挡，因此本次不能形成有效端到端对比。统一页面显示动捕完整URDF和失败说明，详见 `reports/session_20261102_160310_535306/world3d/initialization.json`。
 
 该新会话的 `capture-candidate` 不复用旧7-marker安装关系：设备的刚体→base使用已核对的 `C × G × D`；CAD左相机轴暂按FLU解释，仅为候选光学安装关系。时间候选由本次EGO时钟探针及StartRecording命令时间建立；Take回放不含原始曝光时钟，命令ACK不等于首帧曝光，不能据此声称精确同步。没有有效SLAM初始化，所以这些候选目前未生成世界配准。重新采集前应确认左右RGB画面明亮且手部可见。
+
+## 联合采集双手肌电（2026-11-04）
+
+现有录制入口可选加入两只 ESP32 有线 EMG0 v1 手环，默认 USB 序列号尾号 EB:70 为左、EB:6C 为右；实际左右需佩戴动作核验。
+
+```bash
+.pixi/envs/default/bin/python -m pip install -e '.[emg]'
+./mocap record --emg --duration 30
+# 刚体 H5 联调模式，不控制 Windows Take：
+./mocap record --emg --mode h5 --duration 10
+# 非默认设备通过 --emg-left-port /dev/serial/by-id/... 和 --emg-right-port ... 指定
+```
+
+Ego 与动捕保留已有双向探针；肌电暂不发送对时命令，单向接收拟合只标记 `passive_coarse`。未知固定传输延迟与采样内部延迟未校正，不承诺毫秒级同步。默认不加 `--emg` 时维持原流程。
+
+会话新增 `emg/left.h5`、`right.h5`、对应 `.bin` 原始字节、`*_reads.jsonl` 逐批主机单调接收时间及 `report.json`。H5 的 `emg`/`imu` 为整数矩阵，列定义见数据集 `columns` 属性；保留原始时间、统一回绕展开时间、序号、原始值和读取批次。`*_coarse_alignment/pc_timestamp_ns` 是独立粗映射结果，`clock_extrapolated` 明确标记拟合区间外样本。模型不足时不生成映射。H5 的 complete 仅表示该腕带文件正常收尾，整次联合采集是否完成以 session.json 为准。
+
+读取线程先记录接收时刻，再交给有界队列的保存线程；队列溢出、读写失败、明显重置或超过1.5秒没有EMG时停止联合录制并保存部分数据，不跨重连拼接。肌电包含启动前检查及结束余量，真正录制边界查 `capture/events.jsonl`。原始记录和粗映射均不能替代物理同步验收。
+
+生成离线16通道波形与满量程检查页：
+
+```bash
+.pixi/envs/default/bin/python tools/inspect_emg_capture.py data/sessions/<session_id>
+# 浏览器打开输出的 emg/quality.html
+```
+
+该页仅检查肌电数据；现有 Ego/动捕回放入口仍保持原功能，尚未将三者组合为同步回放页面。
+
+### ABC 联合采集界面
+
+运行 `.pixi/envs/default/bin/python tools/joint_collection_ui.py`，打开 http://127.0.0.1:8775 。A 开始，B 保存并切换演示，C 沿用纠错/结束整轮规则。每动作独立 Take、Ego、肌电；整轮保持连接和时钟探针，肌电先用单向粗对齐。详见 [ABC 联合采集 UI](docs/ABC联合采集UI.md)。

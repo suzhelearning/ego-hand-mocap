@@ -217,3 +217,23 @@ def test_h5_default_session_is_named_calibration_and_printed(tmp_path, capsys):
     assert (folder/'ego.h5').is_file()
     assert (folder/'mocap.h5').is_file()
     assert str(folder.resolve()) in capsys.readouterr().out
+
+
+def test_emg_failure_preserves_report_and_stops_owned_ego(tmp_path):
+    class Emg:
+        def __init__(self,session,ports):self.n=0;self.session=session
+        def start(self):pass
+        def check(self):raise RuntimeError('emg disconnected')
+        def close(self):
+            folder=self.session/'emg';folder.mkdir()
+            (folder/'report.json').write_text('{}')
+            return {'devices':[{'error':'emg disconnected'}]}
+    ego=FakeEgo()
+    result=run_session(config(tmp_path,emg=True),threading.Event(),ego_factory=lambda **kw:ego,stream_factory=FakeStream,emg_factory=Emg)
+    assert result['status']=='failed' and ego.stopped
+    assert 'emg_report' in result['assets']
+
+
+def test_emg_cli_is_opt_in():
+    assert parser().parse_args([]).emg is False
+    assert parser().parse_args(['--emg']).emg is True

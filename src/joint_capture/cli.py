@@ -38,6 +38,9 @@ class CaptureParser(argparse.ArgumentParser):
 def parser():
     defaults=network_defaults()
     p=CaptureParser(prog='mocap record',description='两种联合采集：EGO+Ubuntu H5 或 EGO+Windows Take')
+    p.add_argument('--emg',action='store_true',help='同时采集双手有线EMG0 v1，保存单向粗时间映射')
+    p.add_argument('--emg-left-port',help='左手稳定串口路径，默认USB序列号EB:70')
+    p.add_argument('--emg-right-port',help='右手稳定串口路径，默认USB序列号EB:6C')
     p.add_argument('--mode',choices=['h5','take'],default=None,help='采集方式，默认take；指定--calibration时默认h5')
     p.add_argument('--calibration',type=str.lower,choices=['rbc','tbc'],help='旋转或平移标定动作引导，完成后自动保存')
     p.add_argument('--preview-calibration',action='store_true',help='仅显示标定动作与时长，不连接设备或录制')

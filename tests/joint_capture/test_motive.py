@@ -221,3 +221,22 @@ def test_verify_rejects_another_take_in_shared_directory(monkeypatch):
     monkeypatch.setattr(take,'_powershell',lambda *args,**kw:json.dumps({
         'path':'D:\\captures\\other.tak','size':10,'sha256':'a'*64}))
     with pytest.raises(ValueError,match='错误文件'):take.verify()
+
+
+def test_take_download_checks_hash_and_preserves_remote(tmp_path,monkeypatch):
+    import hashlib,subprocess
+    from types import SimpleNamespace
+    take=controller(Stream(),monkeypatch);take.stop_confirmed=True
+    data=b'RAW_MOTIVE_TAKE\x00\xff'
+    info=dict(path='D:\\captures\\test.tak',size=len(data),sha256=hashlib.sha256(data).hexdigest())
+    monkeypatch.setattr(take,'verify',lambda:info)
+    def run(command,**kwargs):
+        kwargs['stdout'].write(data)
+        return SimpleNamespace(returncode=0,stderr=b'')
+    monkeypatch.setattr(subprocess,'run',run)
+    result=take.copy_to(tmp_path/'motive.tak')
+    assert (tmp_path/'motive.tak').read_bytes()==data and result['copied_to_ubuntu']
+    with pytest.raises(FileExistsError):take.copy_to(tmp_path/'motive.tak')
+    monkeypatch.setattr(take,'verify',lambda:dict(info,sha256='bad'))
+    with pytest.raises(RuntimeError,match='校验'):take.copy_to(tmp_path/'bad.tak')
+    assert not (tmp_path/'bad.tak').exists()
